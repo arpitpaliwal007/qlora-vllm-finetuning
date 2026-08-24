@@ -1,0 +1,2 @@
+{"messages":[{"role":"system","content":"You are a concise technical assistant."},{"role":"user","content":"What is QLoRA?"},{"role":"assistant","content":"QLoRA fine-tunes a frozen quantized language model by training small low-rank adapter weights."}]}
+{"messages":[{"role":"system","content":"You are a concise technical assistant."},{"role":"user","content":"Why use NF4?"},{"role":"assistant","content":"NF4 is a 4-bit quantization data type designed to represent normally distributed neural-network weights efficiently."}]}

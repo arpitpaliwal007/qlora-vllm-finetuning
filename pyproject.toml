@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "qlora-vllm-finetuning"
+version = "0.1.0"
+description = "QLoRA fine-tuning and vLLM serving starter"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["pyyaml>=6.0"]
+
+[project.optional-dependencies]
+train = [
+  "accelerate>=1.0",
+  "bitsandbytes>=0.43",
+  "datasets>=3.0",
+  "peft>=0.13",
+  "torch>=2.4",
+  "transformers>=4.46",
+  "trl>=0.12",
+]
+serve = ["vllm>=0.6"]
+dev = ["pytest>=8.0", "ruff>=0.7"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
