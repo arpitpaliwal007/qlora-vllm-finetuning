@@ -1,0 +1,27 @@
+{
+  "artifact_id": "58df96b14bb06670844ea949a580d9f918c7d2a5d51d8dc8adc93dc2ea188b01",
+  "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+  "base_revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+  "created_at": "2026-10-31T12:41:07+00:00",
+  "dataset_hash": "5189d8360936972d9a1645f2c4068e1a826d5f883739d6bfe0504b787297f724",
+  "files": {
+    "adapter_config.json": "03c45aa73f88e1e3984df9a843bfb331073c21b9fc4b98a1acd596ea571a5964",
+    "adapter_model.safetensors": "f8659cf03c68d76305359368413140587fe8afd1f789a356b3777ccd8f547e10",
+    "training_args.bin": "3596cafaaa16c60de06faf27f653e2f569cc689c3e07e4238acb5955696f04ba"
+  },
+  "kind": "lora_adapter",
+  "packages": {
+    "accelerate": "1.15.0",
+    "bitsandbytes": "0.50.2",
+    "compressed-tensors": "0.20.1",
+    "datasets": "5.1.0",
+    "llmcompressor": "0.15.0",
+    "peft": "0.21.2",
+    "torch": "2.13.0+cu129",
+    "transformers": "5.19.0",
+    "vllm": null
+  },
+  "schema_version": 1,
+  "train_sha256": "6dccf25a54596b7eba714e720c7f60758dbb82fff85e06d8f9eff65aadb86ca2",
+  "training_metadata": "training_metadata.json"
+}

@@ -15,7 +15,9 @@ approved **W4A16** checkpoint locally with **vLLM**.
 | `train.py` → resume → `merge_adapter.py` → `evaluate` → `compare` | ✅ full GPU run resumed from checkpoint 2250 and completed | [Full-run evidence](evidence/full-20261031/) |
 | llm-compressor W4A16 quantization → vLLM serving → endpoint eval + bench | ✅ smoke and full runs; full candidate evaluated on 1,000 questions | [Measured results](#measured-results) |
 | Release gate + promotion/rollback | ✅ full gate **PASS** and local promotion; smoke gate **FAIL**; rollback covered by CPU tests | [Full-run evidence](evidence/full-20261031/), `tests/test_release_gate.py` |
-| Full-profile training and promotion of a real artifact | ✅ completed 2026-10-31; policy thresholds remain illustrative, calibration pending | [Full-run evidence](evidence/full-20261031/) |
+| Full-profile training and promotion of a real artifact | ✅ completed 2026-10-31 | [Full-run evidence](evidence/full-20261031/) |
+| Policy calibration from measured results | ✅ `configs/release_policy.yaml` calibrated on the full run; the original illustrative policy is `tests/fixtures/example_release_policy.yaml` | [Policy calibration](#policy-calibration) |
+| Serving the promoted artifact on a *persistent* on-prem GPU server | ❌ Colab runtimes are ephemeral; the artifact must be restored and re-gated on the target server | [Deploying](#deploying-the-approved-artifact) |
 
 The smoke run is a pipeline validation, not a model result: 20 steps on 256 examples, scored on 64
 held-out questions. Numbers from it are reported below with that caveat. The completed full run uses
@@ -83,7 +85,7 @@ Changes:
 | Release gate | none | `qlora_vllm.release_gate` + `configs/release_policy.yaml`, `qlora_vllm.promote` with rollback |
 | Quantization | GGUF helper only | `scripts/quantize_w4a16.py` (llm-compressor → compressed-tensors, served by vLLM); GGUF helper kept as an unverified alternative for llama.cpp/Ollama |
 | Serving | documented `vllm serve` | `scripts/serve_vllm.sh` (artifact-id model name, health wait, load-time record), `scripts/smoke_test_api.py` |
-| Tests/CI | 1 test | 36 CPU tests, `ci.yml`; manual self-hosted `gpu-pipeline.yml` |
+| Tests/CI | 1 test | 37 CPU tests, `ci.yml`; manual self-hosted `gpu-pipeline.yml` |
 
 Why `Trainer` instead of TRL: TRL's `assistant_only_loss` requires `{% generation %}` markers in the chat
 template, which Qwen2.5's template does not have, and TRL truncates over-long sequences from the right,
@@ -98,7 +100,7 @@ CPU (tests, data tooling, gate):
 python -m venv .venv && source .venv/bin/activate
 pip install --index-url https://download.pytorch.org/whl/cpu torch==2.13.0
 pip install -r requirements-cpu.txt && pip install -e .
-pytest -q            # 36 tests, ~40-90 s on 2 CPU cores
+pytest -q            # 37 tests, ~40-90 s on 2 CPU cores
 ruff check src scripts tests
 ```
 
@@ -262,8 +264,8 @@ python -m qlora_vllm.promote --rollback --approved-dir deploy/approved
 scripts/serve_vllm.sh start deploy/approved/current 8000
 ```
 
-Checks (see `configs/release_policy.yaml`; **the shipped thresholds are illustrative and must be
-calibrated against measured results**): minimum F1/EM; max F1/EM regression vs the approved baseline;
+Checks (see `configs/release_policy.yaml`, calibrated on the measured full run — the comments in the
+file explain each threshold; the original illustrative policy is `tests/fixtures/example_release_policy.yaml`): minimum F1/EM; max F1/EM regression vs the approved baseline;
 max F1/EM degradation of the quantized candidate vs the unquantized fine-tuned model; max empty-response
 and error rates; benchmark p95 latency, p95 TTFT, output tokens/s, request count and error rate (when
 `performance.required`). Evidence checks fail closed: missing/malformed reports, reports older than
@@ -281,7 +283,7 @@ evaluation at any time; only `promote` touches the approved slot.
 
 ## Tests and CI
 
-`pytest -q` runs 36 CPU tests: data validation and rejection accounting, Unicode-safe normalization,
+`pytest -q` runs 37 CPU tests: data validation and rejection accounting, Unicode-safe normalization,
 exact/near dedup, grouped-split determinism and leakage checks, official-dev-as-test handling, loss
 masking and truncation policy on a tiny ChatML tokenizer, metrics and bootstrap, artifact hashing and
 tamper detection, precision selection (CPU/T4/A100), and a real `train.py → --resume → merge → evaluate
@@ -333,8 +335,7 @@ Release gate with the shipped example policy: **FAIL** on one check — `exact_m
 (observed 0.078 > 0.03); all 20 other checks passed, including artifact identity, lineage, freshness,
 comparability and every benchmark limit. On 64 examples a 0.078 EM gap is five questions and its CI
 spans zero, so this is the example threshold meeting a tiny sample, not evidence of real degradation.
-Promotion was correctly blocked. The full-run results below provide evidence for future threshold
-calibration; the shipped thresholds have not been changed.
+Promotion was correctly blocked.
 
 ### Full run — Colab, Tesla T4 (15 GB), 2026-10-31
 
@@ -367,17 +368,58 @@ Streaming benchmark: **128 completed / 0 failed**, concurrency 4, 8 warm-up requ
 | request latency p50 / p95 / p99 | 0.0794 / 0.2246 / 0.2927 s |
 | time to first token p50 / p95 / p99 | 0.0433 / 0.0807 / 0.1045 s |
 
-The shipped release policy returned **PASS (0 failed checks)** and promoted candidate
+The original illustrative release policy returned **PASS (0 failed checks)** and promoted candidate
 `69c8ef53799b06c76ae18ba84c6f3a1f54098d0db43633e87ed09c84a5423709` to the local
 `deploy/approved/current` slot. Baseline checks were skipped because no approved baseline was supplied,
-as permitted for a first release. This does not establish regression performance against a prior release
-or calibrate the example thresholds. The evaluation server was stopped after benchmarking.
+as permitted for a first release. This does not establish regression performance against a prior release. The evaluation server was stopped after benchmarking.
 
 The final output reported **pipeline exit code 0** and **Final Drive backup complete** under
 `MyDrive/qlora-vllm-finetuning-runs/full-resume-20261031T120211Z`.
 See the [committed evidence and provenance](evidence/full-20261031/). Model weights and checkpoint
 state remain outside Git. Allocator OOM warnings occurred during resumed training, but execution
-continued through evaluation, promotion and the final backup.
+continued through evaluation, promotion and the final backup. (Two `CUDACachingAllocator` OOM
+*warnings* at steps 2267 and 2288 of the resumed run; the allocator retried after freeing cache and no
+step failed. Reducing `per_device_train_batch_size` to 2 with `gradient_accumulation_steps: 8` keeps the
+same effective batch with more headroom.)
+
+Training loss fell to 0.078; eval loss reached ~0.20 at epoch 0.6–1.0 and ended at 0.215, i.e. the second
+epoch overfits slightly — a 1-epoch run is a reasonable follow-up experiment.
+
+### Policy calibration
+
+`configs/release_policy.yaml` was calibrated on the full run after the gate above ran (the comments in
+the file give each derivation): quality floors at base + 0.05 (F1 ≥ 0.85, EM ≥ 0.75); regression vs the
+approved baseline ≤ one bootstrap CI half-width at n = 1000 (F1 0.02, EM 0.03); quantization
+degradation ≤ ~2× the measured cost (F1 0.015, EM 0.025); empty/error rates ≤ 1 % / 0.5 %; performance
+limits at ~2× the measured p95 latency and ½ the measured throughput (p95 ≤ 0.5 s, TTFT p95 ≤ 0.2 s,
+≥ 120 output tok/s, ≥ 128 requests); and `allow_missing_baseline: false` now that an approved artifact
+exists. `tests/test_release_gate.py` checks that this policy accepts the measured candidate and rejects
+a base-level model, a 3-point quantization loss and halved throughput. The thresholds are specific to
+this model, dataset and test-set size; re-derive them when any of those change.
+
+## Deploying the approved artifact
+
+Colab runtimes are ephemeral, so the `deploy/approved/current` created by the run no longer exists.
+On the target GPU server (T4 or better, with the `.venv-serve` environment from
+[GPU setup](#gpu-setup-and-execution)):
+
+```bash
+# 1. restore artifacts/quantized-w4a16-full (~1.2 GB) and reports/full/ from the run's Drive backup
+#    (MyDrive/qlora-vllm-finetuning-runs/full-resume-20261031T120211Z), then re-gate and promote locally:
+python -m qlora_vllm.release_gate --policy configs/release_policy.yaml \
+    --candidate reports/full/quantized/results.json --candidate-dir artifacts/quantized-w4a16-full \
+    --finetuned reports/full/finetuned/results.json --bench reports/full/bench.json \
+    --baseline reports/full/quantized/results.json --out reports/full/release_decision_onprem.json --verify-weights
+python -m qlora_vllm.promote --decision reports/full/release_decision_onprem.json \
+    --candidate-dir artifacts/quantized-w4a16-full --approved-dir deploy/approved
+# 2. serve it
+scripts/serve_vllm.sh start deploy/approved/current 8000
+python scripts/smoke_test_api.py --base-url http://localhost:8000/v1 --candidate-dir deploy/approved/current
+```
+
+`--verify-weights` re-hashes the restored files, so a corrupted or substituted copy is refused. The
+72-hour freshness window means reports older than that must be regenerated against the running
+endpoint (`evaluate run --backend openai` + `bench`) before the gate passes.
 
 ## Known limitations and open steps
 
@@ -398,8 +440,6 @@ continued through evaluation, promotion and the final backup.
 * Near-duplicate detection is MinHash on word 3-grams; semantically paraphrased questions on different
   contexts are not detected (and are not leakage in this task, since contexts differ).
 * `quantize_gguf.py` and LoRA-adapter serving in vLLM are not part of the gated path and are unverified.
-* Release thresholds in `configs/release_policy.yaml` are examples. Calibrate them from the measured
-  base vs fine-tuned gap and the bootstrap CIs before treating the gate as meaningful.
 
 ## Layout
 

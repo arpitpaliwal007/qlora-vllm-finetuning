@@ -1,0 +1,120 @@
+{
+  "config": {
+    "bnb_4bit_quant_type": "nf4",
+    "bnb_4bit_use_double_quant": true,
+    "dataset_path": "data/squad_qa/train.jsonl",
+    "eval_steps": 250,
+    "gradient_accumulation_steps": 4,
+    "gradient_checkpointing": true,
+    "learning_rate": 0.0002,
+    "load_in_4bit": true,
+    "logging_steps": 20,
+    "lora_alpha": 64,
+    "lora_dropout": 0.05,
+    "lora_r": 32,
+    "lora_target_modules": [
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "o_proj",
+      "gate_proj",
+      "up_proj",
+      "down_proj"
+    ],
+    "lr_scheduler_type": "cosine",
+    "max_seq_length": 1024,
+    "max_steps": -1,
+    "model_name": "Qwen/Qwen2.5-1.5B-Instruct",
+    "model_revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+    "num_train_epochs": 2,
+    "on_too_long": "drop",
+    "output_dir": "artifacts/qlora-adapter",
+    "per_device_eval_batch_size": 4,
+    "per_device_train_batch_size": 4,
+    "precision": "auto",
+    "resume_from_checkpoint": null,
+    "save_steps": 250,
+    "save_total_limit": 2,
+    "seed": 42,
+    "validation_path": "data/squad_qa/validation.jsonl",
+    "validation_split": 0.0,
+    "warmup_ratio": 0.03,
+    "weight_decay": 0.0
+  },
+  "dataset": {
+    "dataset_hash": "5189d8360936972d9a1645f2c4068e1a826d5f883739d6bfe0504b787297f724",
+    "manifest_path": "data/squad_qa/manifest.json",
+    "train_path": "data/squad_qa/train.jsonl",
+    "train_sha256": "6dccf25a54596b7eba714e720c7f60758dbb82fff85e06d8f9eff65aadb86ca2",
+    "validation_path": "data/squad_qa/validation.jsonl"
+  },
+  "encoding": {
+    "max_seq_length": 1024,
+    "train": {
+      "dropped_too_long": 0,
+      "kept": 20000,
+      "max_tokens": 721,
+      "mean_completion_tokens": 7.3,
+      "mean_tokens": 233.3,
+      "total": 20000
+    },
+    "validation": {
+      "dropped_too_long": 0,
+      "kept": 1000,
+      "max_tokens": 495,
+      "mean_completion_tokens": 7.5,
+      "mean_tokens": 234.9,
+      "total": 1000
+    }
+  },
+  "finished_at": "2026-10-31T12:41:07+00:00",
+  "hardware": {
+    "cpu_count": 2,
+    "cuda_available": true,
+    "cuda_version": "12.9",
+    "gpus": [
+      {
+        "bf16_supported": false,
+        "compute_capability": "7.5",
+        "index": 0,
+        "name": "Tesla T4",
+        "total_memory_gb": 14.56
+      }
+    ],
+    "nvidia_smi": {
+      "gpus": [
+        {
+          "memory_total_mib": 15360,
+          "memory_used_mib": 3,
+          "name": "Tesla T4"
+        }
+      ]
+    },
+    "platform": "Linux-6.6.159+-x86_64-with-glibc2.39",
+    "python": "3.13.16",
+    "torch": "2.13.0+cu129"
+  },
+  "metrics": {
+    "epoch": 2.0,
+    "eval_loss": 0.21540112793445587,
+    "eval_runtime": 102.3881,
+    "eval_samples_per_second": 9.767,
+    "eval_steps_per_second": 2.442,
+    "total_flos": 9.850551646246502e+16,
+    "train_loss": 0.07828126549720764,
+    "train_runtime": 1597.252,
+    "train_samples_per_second": 2.504,
+    "train_steps_per_second": 0.157
+  },
+  "model": {
+    "name": "Qwen/Qwen2.5-1.5B-Instruct",
+    "requested_revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+    "resolved_revision": null
+  },
+  "precision": "fp16",
+  "resumed_from": "artifacts/qlora-adapter/checkpoint-2250",
+  "schema_version": 1,
+  "started_at": "2026-10-31T12:12:41+00:00",
+  "train_seconds": 1601.9,
+  "trainable_parameters": 36929536
+}

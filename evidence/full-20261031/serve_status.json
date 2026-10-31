@@ -1,0 +1,9 @@
+{
+  "pid": 18539,
+  "port": 8001,
+  "served_model_id": "69c8ef53799b06c76ae18ba84c6f3a1f54098d0db43633e87ed09c84a5423709",
+  "artifact_dir": "artifacts/quantized-w4a16-full",
+  "model_load_seconds": 170.2,
+  "started_at": "2026-10-31T12:53:36+00:00",
+  "model_load_note": "wall time from process launch until /health returned 200"
+}

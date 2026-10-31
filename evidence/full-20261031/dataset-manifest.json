@@ -1,0 +1,124 @@
+{
+  "contamination_check": {
+    "pairs": {
+      "train/test": {
+        "context_overlap": 0,
+        "group_overlap": 0,
+        "question_context_overlap": 0,
+        "title_overlap": 0
+      },
+      "train/validation": {
+        "context_overlap": 0,
+        "group_overlap": 0,
+        "question_context_overlap": 0,
+        "title_overlap": 0
+      },
+      "validation/test": {
+        "context_overlap": 0,
+        "group_overlap": 0,
+        "question_context_overlap": 0,
+        "title_overlap": 0
+      }
+    },
+    "passed": true
+  },
+  "created_at": "2026-10-31T07:15:56+00:00",
+  "dataset_hash": "5189d8360936972d9a1645f2c4068e1a826d5f883739d6bfe0504b787297f724",
+  "deduplication": "exact duplicates on normalized (context, question); near-duplicate questions on the same context rejected at token-Jaccard >= 0.9; near-duplicate contexts (MinHash/LSH, 3-gram Jaccard >= 0.8) merged into one split group",
+  "normalization": "Unicode NFKC + whitespace collapse on title/context/question/answers; each normalized answer re-verified as a substring of the normalized context, otherwise the record is rejected",
+  "packages": {
+    "accelerate": "1.15.0",
+    "bitsandbytes": "0.50.2",
+    "compressed-tensors": "0.20.1",
+    "datasets": "5.1.0",
+    "llmcompressor": "0.15.0",
+    "peft": "0.21.2",
+    "torch": "2.13.0+cu129",
+    "transformers": "5.19.0",
+    "vllm": null
+  },
+  "parameters": {
+    "calibration_size": 256,
+    "lsh_bands": 16,
+    "max_context_chars": 6000,
+    "min_context_chars": 20,
+    "min_groups_per_split": 8,
+    "minhash_permutations": 64,
+    "near_dup_context_jaccard": 0.8,
+    "near_dup_question_jaccard": 0.9,
+    "seed": 42,
+    "shingle_size": 3,
+    "test_size": 1000,
+    "train_size": 20000,
+    "validation_size": 1000
+  },
+  "pools": {
+    "test_pool": {
+      "excluded_overlapping_train_pool": 0,
+      "groups": 48,
+      "input_records": 10570,
+      "kept_records": 10526,
+      "near_duplicate_context_pairs": 0,
+      "pool": "test_pool",
+      "rejected_records": 44,
+      "rejection_reasons": {
+        "exact_duplicate": 39,
+        "near_duplicate_question": 5
+      },
+      "unique_contexts": 2067
+    },
+    "train_pool": {
+      "groups": 438,
+      "input_records": 87599,
+      "kept_records": 87348,
+      "near_duplicate_context_pairs": 8,
+      "pool": "train_pool",
+      "rejected_records": 251,
+      "rejection_reasons": {
+        "exact_duplicate": 193,
+        "near_duplicate_question": 58
+      },
+      "unique_contexts": 18891
+    }
+  },
+  "schema_version": 1,
+  "source": {
+    "config": "plain_text",
+    "license": "cc-by-sa-4.0",
+    "name": "rajpurkar/squad",
+    "paper": "Rajpurkar et al., 2016 (SQuAD v1.1)",
+    "revision": "7b6d24c440a36b6815f21b70d25016731768db1f",
+    "test_pool": "official validation split",
+    "url": "https://huggingface.co/datasets/rajpurkar/squad"
+  },
+  "split_method": "test drawn from the separate test pool (SQuAD official validation split) after removing any record sharing a title or context with the train pool; validation/train drawn from the train pool by whole title/near-duplicate-context groups; at most ceil(size/8) records used per group",
+  "splits": {
+    "calibration": {
+      "groups": 92,
+      "note": "quantization calibration data; sampled from train only, never from validation/test",
+      "path": "calibration.jsonl",
+      "records": 256,
+      "sha256": "82e21b760fb0377c1e9f472e23f430d16cdb4a752a7f5cf8bdd8c6e05ed2bfa3",
+      "subset_of": "train"
+    },
+    "test": {
+      "groups": 9,
+      "path": "test.jsonl",
+      "records": 1000,
+      "sha256": "0082f81f8031bc753b341fbae47ab005fdecdaf876111109803690709d6a0681"
+    },
+    "train": {
+      "groups": 102,
+      "path": "train.jsonl",
+      "records": 20000,
+      "sha256": "6dccf25a54596b7eba714e720c7f60758dbb82fff85e06d8f9eff65aadb86ca2"
+    },
+    "validation": {
+      "groups": 9,
+      "path": "validation.jsonl",
+      "records": 1000,
+      "sha256": "3a5bf4474aff4004614ecb1cc2b3eea39d8943b2152169e83dc59ee3b65360e4"
+    }
+  },
+  "task": "grounded extractive question answering (context + question -> answer span)"
+}

@@ -1,0 +1,68 @@
+{
+  "artifact_id": "69c8ef53799b06c76ae18ba84c6f3a1f54098d0db43633e87ed09c84a5423709",
+  "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+  "base_revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+  "created_at": "2026-10-31T12:50:44+00:00",
+  "dataset_hash": "5189d8360936972d9a1645f2c4068e1a826d5f883739d6bfe0504b787297f724",
+  "files": {
+    "config.json": "30eeeffd6530d80002af56a892205c5f4eb15a6f2ea7ec14cd36d699c3496867",
+    "generation_config.json": "dcbfffb2f70a80ca97a986e64fad791df9a35e13379346f9be908f8f76d35441",
+    "model.safetensors": "fafb794bb71c1e9fc2061afa287def40a58aef68bdaedd9e9df61499cd895b0c"
+  },
+  "hardware": {
+    "cpu_count": 2,
+    "cuda_available": true,
+    "cuda_version": "12.9",
+    "gpus": [
+      {
+        "bf16_supported": false,
+        "compute_capability": "7.5",
+        "index": 0,
+        "name": "Tesla T4",
+        "total_memory_gb": 14.56
+      }
+    ],
+    "nvidia_smi": {
+      "gpus": [
+        {
+          "memory_total_mib": 15360,
+          "memory_used_mib": 3,
+          "name": "Tesla T4"
+        }
+      ]
+    },
+    "platform": "Linux-6.6.159+-x86_64-with-glibc2.39",
+    "python": "3.13.16",
+    "torch": "2.13.0+cu129"
+  },
+  "kind": "quantized_w4a16_compressed_tensors",
+  "packages": {
+    "accelerate": "1.15.0",
+    "bitsandbytes": "0.50.2",
+    "compressed-tensors": "0.20.1",
+    "datasets": "5.1.0",
+    "llmcompressor": "0.15.0",
+    "peft": "0.21.2",
+    "torch": "2.13.0+cu129",
+    "transformers": "5.19.0",
+    "vllm": null
+  },
+  "parent_artifact_id": "814ca85ec752a57c0426ce816def4e415fcad6f3fb96b9da0239d36b4a6e2d6b",
+  "parent_kind": "merged_model",
+  "quantization": {
+    "algorithm": "GPTQ",
+    "calibration_file": "data/squad_qa/calibration.jsonl",
+    "calibration_max_seq_length": 1024,
+    "calibration_samples": 256,
+    "calibration_sha256": "82e21b760fb0377c1e9f472e23f430d16cdb4a752a7f5cf8bdd8c6e05ed2bfa3",
+    "calibration_source": "seeded sample of the prepared train split (see dataset manifest)",
+    "ignore": [
+      "lm_head"
+    ],
+    "scheme": "W4A16",
+    "seconds": 201.4,
+    "targets": "Linear",
+    "tool": "llm-compressor"
+  },
+  "schema_version": 1
+}

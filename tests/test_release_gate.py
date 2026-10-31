@@ -18,7 +18,7 @@ from qlora_vllm import promote, release_gate
 from qlora_vllm.artifacts import read_artifact_manifest, write_artifact_manifest
 
 ROOT = Path(__file__).resolve().parents[1]
-POLICY = ROOT / "configs" / "release_policy.yaml"
+POLICY = Path(__file__).parent / "fixtures" / "example_release_policy.yaml"  # illustrative thresholds the synthetic fixtures target
 NOW = datetime(2026, 1, 15, 12, 0, tzinfo=UTC)
 TEST_SHA = "a" * 64
 CFG_HASH = "c" * 64
@@ -277,3 +277,36 @@ def test_promotion_requires_pass_and_matching_artifact_and_keeps_rollback(world,
     with pytest.raises(ValueError, match="modified"):
         promote.main(["--decision", str(world["out"]), "--candidate-dir", str(world["candidate_dir"]), "--approved-dir", str(approved)])
     assert read_artifact_manifest(current)["artifact_id"] == world["ids"]["quant"]  # approved slot untouched by refusals
+
+
+def test_shipped_policy_accepts_the_measured_full_run_and_blocks_regressions(tmp_path):
+    """The calibrated configs/release_policy.yaml, fed the *measured* 2026-10-31 full-run numbers.
+
+    The reports are rebuilt here from those numbers (artifact ids are fixture ids, not the real ones),
+    so this is a policy-logic test, not a re-measurement.
+    """
+    shipped = ROOT / "configs" / "release_policy.yaml"
+    merged = make_artifact(tmp_path / "merged", "merged_model")
+    quant = make_artifact(tmp_path / "quant", "quantized_w4a16_compressed_tensors", parent=merged["artifact_id"])
+    w = {
+        "candidate_dir": tmp_path / "quant",
+        "candidate": make_report(tmp_path / "r_quant", quant["artifact_id"], f1=0.913433, em=0.834),
+        "finetuned": make_report(tmp_path / "r_ft", merged["artifact_id"], f1=0.919146, em=0.844),
+        "baseline": make_report(tmp_path / "r_base", "b" * 64, f1=0.913433, em=0.834),  # the promoted artifact itself
+        "bench": make_bench(tmp_path / "bench.json", quant["artifact_id"], p95=0.2246, ttft=0.0807, tps=254.15, completed=128),
+        "out": tmp_path / "decision.json",
+        "tmp": tmp_path,
+    }
+    assert gate(w, policy=shipped)["decision"] == "PASS"
+    # first release without a baseline is no longer allowed by the shipped policy
+    assert "baseline_report_valid" in failed(gate(w, policy=shipped, baseline=None))
+    # a candidate that merely matches the base model (EM 0.701 / F1 0.806) is rejected by the floors
+    make_report(tmp_path / "r_quant", quant["artifact_id"], f1=0.806, em=0.701)
+    assert {"min_f1", "min_exact_match"} <= failed(gate(w, policy=shipped))
+    # a quantization that costs 3 EM points is rejected
+    make_report(tmp_path / "r_quant", quant["artifact_id"], f1=0.90, em=0.814)
+    assert "exact_match_quantization_degradation" in failed(gate(w, policy=shipped))
+    # serving at half the measured throughput is rejected
+    make_report(tmp_path / "r_quant", quant["artifact_id"], f1=0.913433, em=0.834)
+    make_bench(w["bench"], quant["artifact_id"], p95=0.6, ttft=0.0807, tps=100.0, completed=128)
+    assert {"bench_p95_latency_seconds", "bench_output_tokens_per_second"} <= failed(gate(w, policy=shipped))

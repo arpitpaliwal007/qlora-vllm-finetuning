@@ -1,0 +1,90 @@
+{
+  "created_at": "2026-10-31T12:45:03+00:00",
+  "dataset": {
+    "dataset_hash": "5189d8360936972d9a1645f2c4068e1a826d5f883739d6bfe0504b787297f724",
+    "n": 1000,
+    "path": "data/squad_qa/test.jsonl",
+    "sha256": "0082f81f8031bc753b341fbae47ab005fdecdaf876111109803690709d6a0681"
+  },
+  "eval_config": {
+    "decoding": "greedy",
+    "max_new_tokens": 48,
+    "n_examples": 1000,
+    "prompt_source": "messages field of the prepared test records (identical to training prompts)",
+    "seed": 0,
+    "system_prompt_sha256": "13066232b03efb048c17918a0f312b2eb399c543d9b2d46120e9baf1d11de7fb",
+    "temperature": 0.0,
+    "test_path": "test.jsonl",
+    "test_sha256": "0082f81f8031bc753b341fbae47ab005fdecdaf876111109803690709d6a0681",
+    "top_p": 1.0
+  },
+  "eval_config_hash": "d604cdf59b1fd692e3ee8fd7e39ae3dceba6882a6b59436522724bf8fc5cd59d",
+  "hardware": {
+    "cpu_count": 2,
+    "cuda_available": true,
+    "cuda_version": "12.9",
+    "gpus": [
+      {
+        "bf16_supported": false,
+        "compute_capability": "7.5",
+        "index": 0,
+        "name": "Tesla T4",
+        "total_memory_gb": 14.56
+      }
+    ],
+    "nvidia_smi": {
+      "gpus": [
+        {
+          "memory_total_mib": 15360,
+          "memory_used_mib": 0,
+          "name": "Tesla T4"
+        }
+      ]
+    },
+    "platform": "Linux-6.6.159+-x86_64-with-glibc2.39",
+    "python": "3.13.16",
+    "torch": "2.13.0+cu129"
+  },
+  "metrics": {
+    "empty_rate": 0.0,
+    "error_rate": 0.0,
+    "exact_match": 0.701,
+    "f1": 0.8059389783663342,
+    "mean_output_tokens": 5.891,
+    "n": 1000,
+    "n_empty": 0,
+    "n_errors": 0
+  },
+  "model": {
+    "adapter": null,
+    "artifact_id": "884234f92902ffb4c5cd7fbdaf6cc15a86c18f9c88f38b7ff6a56206687ecfa6",
+    "backend": "hf",
+    "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+    "identity_verified": true,
+    "kind": "hub_model",
+    "load_in_4bit": false,
+    "path": "Qwen/Qwen2.5-1.5B-Instruct",
+    "precision": "fp16",
+    "revision": null
+  },
+  "packages": {
+    "accelerate": "1.15.0",
+    "bitsandbytes": "0.50.2",
+    "compressed-tensors": "0.20.1",
+    "datasets": "5.1.0",
+    "llmcompressor": "0.15.0",
+    "peft": "0.21.2",
+    "torch": "2.13.0+cu129",
+    "transformers": "5.19.0",
+    "vllm": null
+  },
+  "predictions_path": "predictions.jsonl",
+  "schema_version": 1,
+  "timing": {
+    "examples_per_second": 8.575,
+    "generation_seconds": 116.62,
+    "model_load_note": null,
+    "model_load_seconds": 15.26
+  },
+  "variant": "base"
+}

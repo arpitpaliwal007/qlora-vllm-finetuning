@@ -1,0 +1,129 @@
+{
+  "created_at": "2026-10-31T12:54:20+00:00",
+  "dataset": {
+    "dataset_hash": "5189d8360936972d9a1645f2c4068e1a826d5f883739d6bfe0504b787297f724",
+    "n": 1000,
+    "path": "data/squad_qa/test.jsonl",
+    "sha256": "0082f81f8031bc753b341fbae47ab005fdecdaf876111109803690709d6a0681"
+  },
+  "eval_config_hash": "d604cdf59b1fd692e3ee8fd7e39ae3dceba6882a6b59436522724bf8fc5cd59d",
+  "paired_bootstrap": {
+    "finetuned:base": {
+      "exact_match": {
+        "ci_high": 0.173,
+        "ci_low": 0.114,
+        "confidence": 0.95,
+        "mean_diff": 0.143,
+        "n": 1000,
+        "n_resamples": 10000,
+        "p_diff_le_0": 0.0
+      },
+      "f1": {
+        "ci_high": 0.13580705447482733,
+        "ci_low": 0.090871212900985,
+        "confidence": 0.95,
+        "mean_diff": 0.11320716694090266,
+        "n": 1000,
+        "n_resamples": 10000,
+        "p_diff_le_0": 0.0
+      }
+    },
+    "quantized:finetuned": {
+      "exact_match": {
+        "ci_high": 0.002,
+        "ci_low": -0.022024999999999777,
+        "confidence": 0.95,
+        "mean_diff": -0.01,
+        "n": 1000,
+        "n_resamples": 10000,
+        "p_diff_le_0": 0.9521
+      },
+      "f1": {
+        "ci_high": 0.00327477737676267,
+        "ci_low": -0.014780321984660217,
+        "confidence": 0.95,
+        "mean_diff": -0.005712762618644972,
+        "n": 1000,
+        "n_resamples": 10000,
+        "p_diff_le_0": 0.8908
+      }
+    }
+  },
+  "variants": {
+    "base": {
+      "created_at": "2026-10-31T12:45:03+00:00",
+      "metrics": {
+        "empty_rate": 0.0,
+        "error_rate": 0.0,
+        "exact_match": 0.701,
+        "f1": 0.8059389783663342,
+        "mean_output_tokens": 5.891,
+        "n": 1000,
+        "n_empty": 0,
+        "n_errors": 0
+      },
+      "model": {
+        "adapter": null,
+        "artifact_id": "884234f92902ffb4c5cd7fbdaf6cc15a86c18f9c88f38b7ff6a56206687ecfa6",
+        "backend": "hf",
+        "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+        "identity_verified": true,
+        "kind": "hub_model",
+        "load_in_4bit": false,
+        "path": "Qwen/Qwen2.5-1.5B-Instruct",
+        "precision": "fp16",
+        "revision": null
+      },
+      "report": "reports/full/base/results.json"
+    },
+    "finetuned": {
+      "created_at": "2026-10-31T12:47:00+00:00",
+      "metrics": {
+        "empty_rate": 0.0,
+        "error_rate": 0.0,
+        "exact_match": 0.844,
+        "f1": 0.919146145307237,
+        "mean_output_tokens": 5.625,
+        "n": 1000,
+        "n_empty": 0,
+        "n_errors": 0
+      },
+      "model": {
+        "adapter": null,
+        "artifact_id": "814ca85ec752a57c0426ce816def4e415fcad6f3fb96b9da0239d36b4a6e2d6b",
+        "backend": "hf",
+        "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+        "identity_verified": true,
+        "kind": "merged_model",
+        "load_in_4bit": false,
+        "path": "artifacts/merged-full",
+        "precision": "fp16"
+      },
+      "report": "reports/full/finetuned/results.json"
+    },
+    "quantized": {
+      "created_at": "2026-10-31T12:54:12+00:00",
+      "metrics": {
+        "empty_rate": 0.0,
+        "error_rate": 0.0,
+        "exact_match": 0.834,
+        "f1": 0.913433382688592,
+        "mean_output_tokens": 5.617,
+        "n": 1000,
+        "n_empty": 0,
+        "n_errors": 0
+      },
+      "model": {
+        "artifact_id": "69c8ef53799b06c76ae18ba84c6f3a1f54098d0db43633e87ed09c84a5423709",
+        "backend": "openai",
+        "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+        "base_url": "http://localhost:8001/v1",
+        "identity_verified": true,
+        "kind": "quantized_w4a16_compressed_tensors",
+        "path": "artifacts/quantized-w4a16-full",
+        "served_model_id": "69c8ef53799b06c76ae18ba84c6f3a1f54098d0db43633e87ed09c84a5423709"
+      },
+      "report": "reports/full/quantized/results.json"
+    }
+  }
+}

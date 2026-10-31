@@ -1,30 +1,43 @@
-# Example release policy. These thresholds are ILLUSTRATIVE STARTING POINTS, not
-# validated quality standards: calibrate them against your own measured base and
-# fine-tuned results before relying on them. Quality metrics are means over the
-# held-out test split (exact match / token F1, best over reference answers).
-policy_name: example-policy-v1
+# Release policy, calibrated on the 2026-10-31 full run (Colab T4, n = 1000 held-out SQuAD questions).
+# Measured: base EM 0.701 / F1 0.806; fine-tuned EM 0.844 / F1 0.919; W4A16 EM 0.834 / F1 0.913.
+# Bootstrap 95% CI half-widths at n = 1000 are ~0.03 EM and ~0.02 F1 for a between-model difference,
+# and ~0.01 for the paired quantized-vs-fine-tuned difference. Thresholds below are set from those
+# numbers; re-calibrate whenever the model, dataset or test-set size changes.
+policy_name: squad-qwen2.5-1.5b-t4-v1
 
 quality:
-  min_f1: 0.70                                  # absolute floor for the candidate
-  min_exact_match: 0.55
-  max_f1_regression_vs_baseline: 0.02           # candidate vs currently approved artifact
+  # Absolute floors: a candidate must beat the *base* model by a clear margin, not just pass a nominal
+  # bar. Base F1 0.806 + 0.05 ~= 0.85; base EM 0.701 + 0.05 ~= 0.75. A candidate below these would be
+  # a fine-tune that has barely helped, even if it is "better than nothing".
+  min_f1: 0.85
+  min_exact_match: 0.75
+  # Regression vs the approved baseline: one CI half-width at n = 1000. A larger drop is detectable,
+  # not noise, and should block.
+  max_f1_regression_vs_baseline: 0.02
   max_exact_match_regression_vs_baseline: 0.03
-  max_f1_quantization_degradation: 0.02         # quantized candidate vs unquantized fine-tuned model
-  max_exact_match_quantization_degradation: 0.03
+  # Quantization degradation: measured W4A16 cost was F1 -0.006 [-0.015, +0.003], EM -0.010
+  # [-0.022, +0.002]. Allow about twice the observed cost; more than that means the quantization run
+  # went wrong (bad calibration data, wrong scheme) rather than normal INT4 loss.
+  max_f1_quantization_degradation: 0.015
+  max_exact_match_quantization_degradation: 0.025
 
 reliability:
-  max_empty_rate: 0.02                          # empty responses / examples
-  max_error_rate: 0.01                          # inference errors / examples
+  # Both rates were 0.0 in every run so far; any non-trivial rate is a serving/template fault.
+  max_empty_rate: 0.01
+  max_error_rate: 0.005
 
 performance:
-  required: true                                # false: skip the benchmark checks entirely
-  min_requests: 32                              # benchmark must have measured at least this many requests
-  max_p95_latency_seconds: 3.0
-  max_p95_ttft_seconds: 1.0
-  min_output_tokens_per_second: 40
-  max_error_rate: 0.01
+  required: true
+  min_requests: 128                             # the benchmark the gate relies on must be at least this large
+  # Measured on a T4 at concurrency 4, 128 requests, <= 48 output tokens: p95 latency 0.22 s,
+  # p95 TTFT 0.08 s, 254 output tok/s, 40 req/s. Limits are ~2x the measured values so a regression
+  # to half the throughput or double the latency blocks, while run-to-run jitter does not.
+  max_p95_latency_seconds: 0.5
+  max_p95_ttft_seconds: 0.2
+  min_output_tokens_per_second: 120
+  max_error_rate: 0.005
 
 evidence:
-  max_report_age_hours: 72                      # reports older than this are stale
-  allow_missing_baseline: true                  # only sensible for the very first release
-  require_identity_verified: true               # endpoint reports must prove which artifact they measured
+  max_report_age_hours: 72
+  allow_missing_baseline: false                 # an approved artifact now exists; every later candidate must be compared to it
+  require_identity_verified: true
