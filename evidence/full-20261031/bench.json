@@ -1,0 +1,44 @@
+{
+  "created_at": "2026-10-31T12:54:19+00:00",
+  "errors": [],
+  "gpu_memory": {
+    "after": {"gpus": [{"memory_total_mib": 15360, "memory_used_mib": 12451, "name": "Tesla T4"}]},
+    "before": {"gpus": [{"memory_total_mib": 15360, "memory_used_mib": 12451, "name": "Tesla T4"}]},
+    "note": null
+  },
+  "hardware": {
+    "cpu_count": 2,
+    "cuda_available": true,
+    "cuda_version": "12.9",
+    "gpus": [{"bf16_supported": false, "compute_capability": "7.5", "index": 0, "name": "Tesla T4", "total_memory_gb": 14.56}],
+    "nvidia_smi": {"gpus": [{"memory_total_mib": 15360, "memory_used_mib": 12451, "name": "Tesla T4"}]},
+    "platform": "Linux-6.6.159+-x86_64-with-glibc2.39",
+    "python": "3.13.16",
+    "torch": "2.13.0+cu129"
+  },
+  "model": {
+    "artifact_id": "69c8ef53799b06c76ae18ba84c6f3a1f54098d0db43633e87ed09c84a5423709",
+    "base_url": "http://localhost:8001/v1",
+    "identity_verified": true,
+    "kind": "quantized_w4a16_compressed_tensors",
+    "served_model_id": "69c8ef53799b06c76ae18ba84c6f3a1f54098d0db43633e87ed09c84a5423709"
+  },
+  "model_load_note": null,
+  "model_load_seconds": 170.2,
+  "results": {
+    "completed": 128,
+    "error_rate": 0.0,
+    "failed": 0,
+    "output_tokens": {"max": 31.0, "mean": 6.34375, "p50": 4.0, "p90": 11.0, "p95": 19.0, "p99": 26.840000000000032},
+    "output_tokens_per_second": 254.15356202225846,
+    "per_request_generation_tokens_per_second": {"max": 942.795416732456, "mean": 170.62545518544624, "p50": 143.17257178182172, "p90": 248.05019495090198, "p95": 286.4189839067026, "p99": 649.7740441136458},
+    "prompt_tokens": {"max": 339.0, "mean": 228.2734375, "p50": 224.0, "p90": 313.3, "p95": 332.0, "p99": 337.0},
+    "request_latency_s": {"max": 0.37993111400010093, "mean": 0.09899594582815041, "p50": 0.07944864000000962, "p90": 0.16147248430024766, "p95": 0.22457706159980254, "p99": 0.2926898087706379},
+    "requests_per_second": 40.06361568823778,
+    "time_to_first_token_s": {"max": 0.10876646700035053, "mean": 0.048998048218713564, "p50": 0.04331492250003066, "p90": 0.07316005729999232, "p95": 0.08072266739991392, "p99": 0.10448569314986346},
+    "token_count_source": ["usage"],
+    "wall_seconds": 3.194918826000503
+  },
+  "schema_version": 1,
+  "settings": {"concurrency": 4, "decoding": "greedy, streaming", "distinct_prompts": 128, "max_tokens": 48, "prompt_source": "data/squad_qa/test.jsonl", "requests": 128, "warmup_requests": 8}
+}

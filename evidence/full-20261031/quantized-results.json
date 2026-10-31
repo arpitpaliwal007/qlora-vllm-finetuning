@@ -1,0 +1,88 @@
+{
+  "created_at": "2026-10-31T12:54:12+00:00",
+  "dataset": {
+    "dataset_hash": "5189d8360936972d9a1645f2c4068e1a826d5f883739d6bfe0504b787297f724",
+    "n": 1000,
+    "path": "data/squad_qa/test.jsonl",
+    "sha256": "0082f81f8031bc753b341fbae47ab005fdecdaf876111109803690709d6a0681"
+  },
+  "eval_config": {
+    "decoding": "greedy",
+    "max_new_tokens": 48,
+    "n_examples": 1000,
+    "prompt_source": "messages field of the prepared test records (identical to training prompts)",
+    "seed": 0,
+    "system_prompt_sha256": "13066232b03efb048c17918a0f312b2eb399c543d9b2d46120e9baf1d11de7fb",
+    "temperature": 0.0,
+    "test_path": "test.jsonl",
+    "test_sha256": "0082f81f8031bc753b341fbae47ab005fdecdaf876111109803690709d6a0681",
+    "top_p": 1.0
+  },
+  "eval_config_hash": "d604cdf59b1fd692e3ee8fd7e39ae3dceba6882a6b59436522724bf8fc5cd59d",
+  "hardware": {
+    "cpu_count": 2,
+    "cuda_available": true,
+    "cuda_version": "12.9",
+    "gpus": [
+      {
+        "bf16_supported": false,
+        "compute_capability": "7.5",
+        "index": 0,
+        "name": "Tesla T4",
+        "total_memory_gb": 14.56
+      }
+    ],
+    "nvidia_smi": {
+      "gpus": [
+        {
+          "memory_total_mib": 15360,
+          "memory_used_mib": 12451,
+          "name": "Tesla T4"
+        }
+      ]
+    },
+    "platform": "Linux-6.6.159+-x86_64-with-glibc2.39",
+    "python": "3.13.16",
+    "torch": "2.13.0+cu129"
+  },
+  "metrics": {
+    "empty_rate": 0.0,
+    "error_rate": 0.0,
+    "exact_match": 0.834,
+    "f1": 0.913433382688592,
+    "mean_output_tokens": 5.617,
+    "n": 1000,
+    "n_empty": 0,
+    "n_errors": 0
+  },
+  "model": {
+    "artifact_id": "69c8ef53799b06c76ae18ba84c6f3a1f54098d0db43633e87ed09c84a5423709",
+    "backend": "openai",
+    "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+    "base_url": "http://localhost:8001/v1",
+    "identity_verified": true,
+    "kind": "quantized_w4a16_compressed_tensors",
+    "path": "artifacts/quantized-w4a16-full",
+    "served_model_id": "69c8ef53799b06c76ae18ba84c6f3a1f54098d0db43633e87ed09c84a5423709"
+  },
+  "packages": {
+    "accelerate": "1.15.0",
+    "bitsandbytes": "0.50.2",
+    "compressed-tensors": "0.20.1",
+    "datasets": "5.1.0",
+    "llmcompressor": "0.15.0",
+    "peft": "0.21.2",
+    "torch": "2.13.0+cu129",
+    "transformers": "5.19.0",
+    "vllm": null
+  },
+  "predictions_path": "predictions.jsonl",
+  "schema_version": 1,
+  "timing": {
+    "examples_per_second": 32.442,
+    "generation_seconds": 30.82,
+    "model_load_note": "unavailable: the endpoint was started outside this process (see serve_status.json from serve_vllm.sh)",
+    "model_load_seconds": null
+  },
+  "variant": "quantized"
+}

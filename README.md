@@ -11,14 +11,15 @@ approved **W4A16** checkpoint locally with **vLLM**.
 |---|---|---|
 | Data pipeline (validate, normalize, dedup, grouped split, manifest) | ✅ synthetic fixture (CPU tests) and real SQuAD (Colab T4 smoke run) | `tests/test_prepare_data.py`, smoke manifest |
 | Chat templating + assistant-only loss masking + truncation policy | ✅ tiny tokenizer (CPU) and Qwen2.5 (smoke run: 0 of 320 examples dropped) | `tests/test_dataset.py`, `training_metadata.json` |
-| QLoRA training with NF4 on a GPU | ✅ **smoke profile only** (20 optimizer steps, 256 examples, Colab T4) | smoke log, see [Measured results](#measured-results) |
-| `train.py` → resume → `merge_adapter.py` → `evaluate` → `compare` | ✅ CPU tiny-model test; ✅ GPU smoke run (resume not exercised on GPU) | `tests/test_train_pipeline_cpu.py`, smoke log |
-| llm-compressor W4A16 quantization → vLLM serving → endpoint eval + bench | ✅ smoke run (vLLM 0.32.0 loaded the llm-compressor 0.15.0 checkpoint) | smoke log |
-| Release gate + promotion/rollback | ✅ synthetic reports (CPU tests); ✅ gate ran on the smoke run and returned **FAIL** (see below) | `tests/test_release_gate.py`, `release_decision.json` |
-| Full-profile training (20k × 2 epochs), calibrated policy, promotion of a real artifact | ❌ **not run yet** | `scripts/run_gpu_pipeline.sh full` / `notebooks/colab_pipeline.ipynb` |
+| QLoRA training with NF4 on a GPU | ✅ full profile: 20,000 examples, 2 epochs / 2,500 steps, Colab T4, FP16 | [Full-run evidence](evidence/full-20261031/) |
+| `train.py` → resume → `merge_adapter.py` → `evaluate` → `compare` | ✅ full GPU run resumed from checkpoint 2250 and completed | [Full-run evidence](evidence/full-20261031/) |
+| llm-compressor W4A16 quantization → vLLM serving → endpoint eval + bench | ✅ smoke and full runs; full candidate evaluated on 1,000 questions | [Measured results](#measured-results) |
+| Release gate + promotion/rollback | ✅ full gate **PASS** and local promotion; smoke gate **FAIL**; rollback covered by CPU tests | [Full-run evidence](evidence/full-20261031/), `tests/test_release_gate.py` |
+| Full-profile training and promotion of a real artifact | ✅ completed 2026-10-31; policy thresholds remain illustrative, calibration pending | [Full-run evidence](evidence/full-20261031/) |
 
 The smoke run is a pipeline validation, not a model result: 20 steps on 256 examples, scored on 64
-held-out questions. Numbers from it are reported below with that caveat. The full run is the next step.
+held-out questions. Numbers from it are reported below with that caveat. The completed full run uses
+1,000 held-out questions and is reported separately.
 
 ## Task and architecture
 
@@ -177,8 +178,9 @@ python scripts/train.py --config configs/qlora.yaml --resume    # continue from 
 * Loss is computed only on the assistant turn: the prompt is rendered with `add_generation_prompt=True`
   and tokenized separately from the completion, so the label boundary is exact.
 * `max_seq_length` / `on_too_long`: an example longer than the limit is **dropped and counted**
-  (`drop`) or aborts the run (`error`); it is never truncated. SQuAD prompts are < 600 tokens, so with
-  `max_seq_length: 1024` the expected drop count is 0 — check `training_metadata.json → encoding`.
+  (`drop`) or aborts the run (`error`); it is never truncated. The full run's longest encoded training
+  example was 721 tokens; with `max_seq_length: 1024`, no training or validation examples were dropped.
+  Check `training_metadata.json → encoding` for each run.
 * Outputs: adapter + tokenizer, `checkpoint-N/` dirs, `training_metadata.json` (model + resolved
   revision, dataset hash, full config, package versions, hardware, encoding stats, metrics, resume
   source) and `artifact_manifest.json`.
@@ -331,20 +333,59 @@ Release gate with the shipped example policy: **FAIL** on one check — `exact_m
 (observed 0.078 > 0.03); all 20 other checks passed, including artifact identity, lineage, freshness,
 comparability and every benchmark limit. On 64 examples a 0.078 EM gap is five questions and its CI
 spans zero, so this is the example threshold meeting a tiny sample, not evidence of real degradation.
-The thresholds will be calibrated on the full run (n = 1000); promotion was correctly blocked.
+Promotion was correctly blocked. The full-run results below provide evidence for future threshold
+calibration; the shipped thresholds have not been changed.
 
-### Full run
+### Full run — Colab, Tesla T4 (15 GB), 2026-10-31
 
-Not yet executed.
+Completed the full profile: **20,000 train / 1,000 validation / 1,000 test / 256 calibration**,
+2 epochs (2,500 optimizer steps), NF4 QLoRA with FP16 compute. After earlier runtime interruptions,
+the final session resumed from `checkpoint-2250` (epoch 1.8) and reached step 2,500 / epoch 2.0.
+No training or validation examples were dropped for length. The resumed training invocation reported
+1,597 s, including evaluation; this is **not** the total training time across sessions.
+
+| variant | backend | EM | F1 | empty | errors | artifact id (prefix) |
+|---|---|---|---|---|---|---|
+| base Qwen2.5-1.5B-Instruct | HF | 0.7010 | 0.8059 | 0 | 0 | `884234f92902` |
+| fine-tuned (merged) | HF | 0.8440 | 0.9191 | 0 | 0 | `814ca85ec752` |
+| quantized W4A16 | vLLM | 0.8340 | 0.9134 | 0 | 0 | `69c8ef53799b` |
+
+Same test-file SHA-256 prefix `0082f81f8031` and eval-config prefix `d604cdf59b1f` for all variants.
+Paired bootstrap (1,000 examples, 10,000 resamples, 95% CI; differences in score units):
+
+| comparison | EM difference [95% CI] | F1 difference [95% CI] |
+|---|---|---|
+| fine-tuned − base | +0.1430 [+0.1140, +0.1730] | +0.1132 [+0.0909, +0.1358] |
+| quantized − fine-tuned | −0.0100 [−0.0220, +0.0020] | −0.0057 [−0.0148, +0.0033] |
+
+Quantization took 201 s; vLLM became healthy after 170.2 s and passed the API smoke check.
+Streaming benchmark: **128 completed / 0 failed**, concurrency 4, 8 warm-up requests, max 48 output tokens:
+
+| measurement | full-run result |
+|---|---|
+| aggregate throughput | 40.06 requests/s; 254.15 output tokens/s |
+| request latency p50 / p95 / p99 | 0.0794 / 0.2246 / 0.2927 s |
+| time to first token p50 / p95 / p99 | 0.0433 / 0.0807 / 0.1045 s |
+
+The shipped release policy returned **PASS (0 failed checks)** and promoted candidate
+`69c8ef53799b06c76ae18ba84c6f3a1f54098d0db43633e87ed09c84a5423709` to the local
+`deploy/approved/current` slot. Baseline checks were skipped because no approved baseline was supplied,
+as permitted for a first release. This does not establish regression performance against a prior release
+or calibrate the example thresholds. The evaluation server was stopped after benchmarking.
+
+The final output reported **pipeline exit code 0** and **Final Drive backup complete** under
+`MyDrive/qlora-vllm-finetuning-runs/full-resume-20261031T120211Z`.
+See the [committed evidence and provenance](evidence/full-20261031/). Model weights and checkpoint
+state remain outside Git. Allocator OOM warnings occurred during resumed training, but execution
+continued through evaluation, promotion and the final backup.
 
 ## Known limitations and open steps
 
-* **The full-profile run has not happened yet.** Only the 20-step smoke run exists; its metrics are
-  pipeline validation, not a model result. Run `scripts/run_gpu_pipeline.sh full` (or the Colab
-  notebook), then calibrate `configs/release_policy.yaml` from the full-run `comparison.md`.
-* The smoke run trained in emulated BF16 on the T4 because of the detection bug described above; the
-  fix (compute-capability check) is in the code but has not itself been re-run on a GPU yet.
-* `--resume` is covered by the CPU test but has not been exercised on a GPU.
+* Full-profile results come from one Colab T4 run spanning runtime interruptions. GPU resume and the
+  FP16 precision fix were exercised; multi-seed and independent repeat runs remain open.
+* No approved baseline was supplied for the first full release, so baseline regression checks were skipped.
+* Benchmark results describe this short-answer QA workload at concurrency 4 on a single T4; they do
+  not establish performance for longer generations, higher concurrency or other hardware.
 * The CPU suite was run on the exact train-environment pins (`torch 2.13.0`, `transformers 5.19.0`,
   `peft 0.21.2`, `datasets 5.1.0`, `accelerate 1.15.0`) and also on `transformers 5.22.1`.
 * vLLM on a T4 cannot use FlashAttention-2 (Ampere+); it falls back to another attention backend. The
@@ -369,6 +410,7 @@ scripts/            train.py, merge_adapter.py, quantize_w4a16.py, quantize_gguf
 src/qlora_vllm/     prepare_data, dataset (masking), config, hardware, artifacts, prompting,
                     metrics, evaluate, bench, release_gate, promote
 tests/              CPU tests + synthetic fixtures
+evidence/           committed full-run reports and provenance; no model weights
 data/               prepared datasets (gitignored), sample.jsonl
 artifacts/ reports/ deploy/   generated (gitignored)
 ```

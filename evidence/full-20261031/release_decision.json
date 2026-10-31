@@ -1,0 +1,212 @@
+{
+  "candidate": {
+    "artifact_id": "69c8ef53799b06c76ae18ba84c6f3a1f54098d0db43633e87ed09c84a5423709",
+    "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+    "kind": "quantized_w4a16_compressed_tensors",
+    "parent_artifact_id": "814ca85ec752a57c0426ce816def4e415fcad6f3fb96b9da0239d36b4a6e2d6b",
+    "path": "artifacts/quantized-w4a16-full",
+    "report": "reports/full/quantized/results.json"
+  },
+  "checks": [
+    {
+      "name": "candidate_artifact_identity",
+      "observed": "69c8ef53799b",
+      "reason": "report artifact id matches the candidate manifest",
+      "status": "PASS",
+      "threshold": null
+    },
+    {
+      "name": "candidate_report_valid",
+      "observed": null,
+      "reason": "loaded reports/full/quantized/results.json",
+      "status": "PASS",
+      "threshold": null
+    },
+    {
+      "name": "candidate_report_fresh",
+      "observed": 0.0,
+      "reason": "report is within the freshness window",
+      "status": "PASS",
+      "threshold": 72.0
+    },
+    {
+      "name": "finetuned_report_valid",
+      "observed": null,
+      "reason": "loaded reports/full/finetuned/results.json",
+      "status": "PASS",
+      "threshold": null
+    },
+    {
+      "name": "finetuned_report_comparable",
+      "observed": null,
+      "reason": "same test set and evaluation configuration",
+      "status": "PASS",
+      "threshold": null
+    },
+    {
+      "name": "finetuned_report_fresh",
+      "observed": 0.1,
+      "reason": "report is within the freshness window",
+      "status": "PASS",
+      "threshold": 72.0
+    },
+    {
+      "name": "candidate_lineage",
+      "observed": "814ca85ec752",
+      "reason": "candidate was quantized from the evaluated fine-tuned model",
+      "status": "PASS",
+      "threshold": null
+    },
+    {
+      "name": "baseline_report_valid",
+      "observed": null,
+      "reason": "no approved baseline supplied and policy allows a missing baseline (first release)",
+      "status": "SKIP",
+      "threshold": null
+    },
+    {
+      "name": "min_f1",
+      "observed": 0.913433382688592,
+      "reason": "candidate F1 meets the minimum",
+      "status": "PASS",
+      "threshold": 0.7
+    },
+    {
+      "name": "min_exact_match",
+      "observed": 0.834,
+      "reason": "candidate exact match meets the minimum",
+      "status": "PASS",
+      "threshold": 0.55
+    },
+    {
+      "name": "f1_regression_vs_baseline",
+      "observed": null,
+      "reason": "no baseline",
+      "status": "SKIP",
+      "threshold": null
+    },
+    {
+      "name": "f1_quantization_degradation",
+      "observed": 0.005713,
+      "reason": "F1 degradation vs fine-tuned model within the limit",
+      "status": "PASS",
+      "threshold": 0.02
+    },
+    {
+      "name": "exact_match_quantization_degradation",
+      "observed": 0.01,
+      "reason": "EM degradation vs fine-tuned model within the limit",
+      "status": "PASS",
+      "threshold": 0.03
+    },
+    {
+      "name": "max_empty_rate",
+      "observed": 0.0,
+      "reason": "empty-response rate within the limit",
+      "status": "PASS",
+      "threshold": 0.02
+    },
+    {
+      "name": "max_error_rate",
+      "observed": 0.0,
+      "reason": "inference error rate within the limit",
+      "status": "PASS",
+      "threshold": 0.01
+    },
+    {
+      "name": "bench_report_valid",
+      "observed": null,
+      "reason": "loaded reports/full/bench.json",
+      "status": "PASS",
+      "threshold": null
+    },
+    {
+      "name": "bench_report_fresh",
+      "observed": 0.0,
+      "reason": "report is within the freshness window",
+      "status": "PASS",
+      "threshold": 72.0
+    },
+    {
+      "name": "bench_min_requests",
+      "observed": 128,
+      "reason": "completed benchmark requests meets the minimum",
+      "status": "PASS",
+      "threshold": 32
+    },
+    {
+      "name": "bench_p95_latency_seconds",
+      "observed": 0.22457706159980254,
+      "reason": "p95 request latency (s) within the limit",
+      "status": "PASS",
+      "threshold": 3.0
+    },
+    {
+      "name": "bench_p95_ttft_seconds",
+      "observed": 0.08072266739991392,
+      "reason": "p95 time to first token (s) within the limit",
+      "status": "PASS",
+      "threshold": 1.0
+    },
+    {
+      "name": "bench_output_tokens_per_second",
+      "observed": 254.15356202225846,
+      "reason": "output tokens/s meets the minimum",
+      "status": "PASS",
+      "threshold": 40
+    },
+    {
+      "name": "bench_error_rate",
+      "observed": 0.0,
+      "reason": "benchmark error rate within the limit",
+      "status": "PASS",
+      "threshold": 0.01
+    }
+  ],
+  "created_at": "2026-10-31T12:54:24+00:00",
+  "dataset": {
+    "dataset_hash": "5189d8360936972d9a1645f2c4068e1a826d5f883739d6bfe0504b787297f724",
+    "test_sha256": "0082f81f8031bc753b341fbae47ab005fdecdaf876111109803690709d6a0681"
+  },
+  "decision": "PASS",
+  "eval_config": {
+    "decoding": "greedy",
+    "max_new_tokens": 48,
+    "n_examples": 1000,
+    "prompt_source": "messages field of the prepared test records (identical to training prompts)",
+    "seed": 0,
+    "system_prompt_sha256": "13066232b03efb048c17918a0f312b2eb399c543d9b2d46120e9baf1d11de7fb",
+    "temperature": 0.0,
+    "test_path": "test.jsonl",
+    "test_sha256": "0082f81f8031bc753b341fbae47ab005fdecdaf876111109803690709d6a0681",
+    "top_p": 1.0
+  },
+  "eval_config_hash": "d604cdf59b1fd692e3ee8fd7e39ae3dceba6882a6b59436522724bf8fc5cd59d",
+  "evaluated_at": "2026-10-31T12:54:20+00:00",
+  "policy": {
+    "name": "example-policy-v1",
+    "path": "configs/release_policy.yaml",
+    "sha256": "e27f938e8f3b2df7268b0faa121fe4a57ebfce02434db725c8ab25e6d884a594"
+  },
+  "references": {
+    "baseline": {
+      "artifact_id": null,
+      "report": null
+    },
+    "bench": {
+      "report": "reports/full/bench.json",
+      "served_model_id": "69c8ef53799b06c76ae18ba84c6f3a1f54098d0db43633e87ed09c84a5423709"
+    },
+    "finetuned": {
+      "artifact_id": "814ca85ec752a57c0426ce816def4e415fcad6f3fb96b9da0239d36b4a6e2d6b",
+      "report": "reports/full/finetuned/results.json"
+    }
+  },
+  "schema_version": 1,
+  "summary": {
+    "failed": 0,
+    "failed_checks": [],
+    "passed": 20,
+    "skipped": 2
+  }
+}
