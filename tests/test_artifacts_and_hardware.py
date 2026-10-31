@@ -9,7 +9,7 @@ from qlora_vllm.artifacts import hash_artifact_dir, read_artifact_manifest, veri
 from qlora_vllm.hardware import resolve_precision
 
 CPU = {"cuda_available": False, "gpus": []}
-T4 = {"cuda_available": True, "gpus": [{"name": "Tesla T4", "compute_capability": "7.5", "bf16_supported": False}]}
+T4 = {"cuda_available": True, "gpus": [{"name": "Tesla T4", "compute_capability": "7.5", "bf16_supported": False}]}  # as detect_hardware reports it
 A100 = {"cuda_available": True, "gpus": [{"name": "A100", "compute_capability": "8.0", "bf16_supported": True}]}
 
 

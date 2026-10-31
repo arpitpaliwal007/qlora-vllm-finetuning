@@ -20,7 +20,7 @@ from qlora_vllm.prepare_data import (
 from qlora_vllm.prompting import SYSTEM_PROMPT
 
 FIXTURE = Path(__file__).parent / "fixtures" / "squad_mini.json"
-CFG = PrepConfig(train_size=18, validation_size=6, test_size=6, calibration_size=4)
+CFG = PrepConfig(train_size=18, validation_size=6, test_size=6, calibration_size=4, min_groups_per_split=2)
 
 
 def test_fixture_is_labelled_synthetic():
@@ -76,13 +76,13 @@ def test_dedup_and_rejection_accounting():
 def test_grouped_split_never_separates_a_group_and_is_deterministic():
     kept, _ = clean_pool(iter_squad_json(FIXTURE), CFG, "pool")
     sizes = {"test": 6, "validation": 6, "train": 18}
-    a = grouped_take(kept, sizes, seed=1)
-    b = grouped_take(kept, sizes, seed=1)
+    a = grouped_take(kept, sizes, seed=1, min_groups=2)
+    b = grouped_take(kept, sizes, seed=1, min_groups=2)
     assert {k: [r["id"] for r in v] for k, v in a.items()} == {k: [r["id"] for r in v] for k, v in b.items()}
     groups = {name: {r["group"] for r in rows} for name, rows in a.items()}
     assert not (groups["test"] & groups["train"]) and not (groups["test"] & groups["validation"]) and not (groups["validation"] & groups["train"])
     assert contamination_report(a)["passed"]
-    assert grouped_take(kept, sizes, seed=2) != a  # the seed matters
+    assert grouped_take(kept, sizes, seed=2, min_groups=2) != a  # the seed matters
 
 
 def test_contamination_report_catches_leaks():
@@ -122,7 +122,13 @@ def test_official_validation_pool_becomes_test(tmp_path: Path):
     train_pool = [r for r in pool if r["title"] not in {"Test Article Festival", "Test Article Unicode"}]
     # The test pool contains one overlapping article (Rivers) that must be excluded from the test split.
     test_pool = [r for r in pool if r["title"] in {"Test Article Festival", "Test Article Unicode", "Test Article Rivers"}]
-    manifest = prepare(train_pool, test_pool, PrepConfig(train_size=12, validation_size=4, test_size=5, calibration_size=2), tmp_path, {"name": "fixture"})
+    manifest = prepare(
+        train_pool,
+        test_pool,
+        PrepConfig(train_size=12, validation_size=4, test_size=5, calibration_size=2, min_groups_per_split=2),
+        tmp_path,
+        {"name": "fixture"},
+    )
     assert manifest["contamination_check"]["passed"]
     assert manifest["pools"]["test_pool"]["excluded_overlapping_train_pool"] > 0
     test = read_jsonl(tmp_path / "test.jsonl")
@@ -132,5 +138,16 @@ def test_official_validation_pool_becomes_test(tmp_path: Path):
 @pytest.mark.parametrize("bad", [{"train_size": 18, "validation_size": 0}])
 def test_zero_sized_split_is_allowed(bad):
     kept, _ = clean_pool(iter_squad_json(FIXTURE), CFG, "pool")
-    out = grouped_take(kept, {"validation": 0, "train": 18}, seed=0)
+    out = grouped_take(kept, {"validation": 0, "train": 18}, seed=0, min_groups=2)
     assert out["validation"] == [] and len(out["train"]) == 18
+
+
+def test_split_is_spread_over_several_groups_without_leaking():
+    kept, _ = clean_pool(iter_squad_json(FIXTURE), CFG, "pool")
+    # 7 groups available; asking for 6 test records over >= 6 groups gives one record per group
+    out = grouped_take(kept, {"test": 6, "train": 6}, seed=0, min_groups=6)
+    assert len({r["group"] for r in out["test"]}) == 6
+    assert not ({r["group"] for r in out["test"]} & {r["group"] for r in out["train"]})
+    # with min_groups=1 a single large group can fill the split (old behaviour)
+    single = grouped_take(kept, {"test": 6}, seed=0, min_groups=1)
+    assert len({r["group"] for r in single["test"]}) <= 2

@@ -64,6 +64,7 @@ class PrepConfig:
     minhash_permutations: int = 64
     lsh_bands: int = 16
     shingle_size: int = 3
+    min_groups_per_split: int = 8
 
 
 # --------------------------------------------------------------------------- loading
@@ -291,13 +292,13 @@ def clean_pool(raw_records: Iterable[dict[str, Any]], cfg: PrepConfig, pool_name
 # --------------------------------------------------------------------------- splitting
 
 
-def grouped_take(records: list[dict[str, Any]], sizes: dict[str, int], seed: int) -> dict[str, list[dict[str, Any]]]:
+def grouped_take(records: list[dict[str, Any]], sizes: dict[str, int], seed: int, min_groups: int = 8) -> dict[str, list[dict[str, Any]]]:
     """Assign whole groups to the named splits in order until each size is met.
 
-    Groups are shuffled deterministically; a group is never split across two
-    outputs. The last split in ``sizes`` receives whole groups until its size is
-    met and may be trimmed to the exact size (trimming never leaks, the
-    discarded records are simply unused).
+    Groups are shuffled deterministically and a group is never split across two
+    outputs. To keep a split from being filled by one large article, at most
+    ``ceil(size / min_groups)`` records of each group are used; the rest of that
+    group is discarded, never given to another split, so trimming cannot leak.
     """
     by_group: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for record in records:
@@ -305,12 +306,11 @@ def grouped_take(records: list[dict[str, Any]], sizes: dict[str, int], seed: int
     group_ids = sorted(by_group)
     random.Random(seed).shuffle(group_ids)
     out: dict[str, list[dict[str, Any]]] = {name: [] for name in sizes}
-    names = list(sizes)
     cursor = 0
-    for name in names:
-        target = sizes[name]
+    for name, target in sizes.items():
+        per_group = max(1, -(-target // max(1, min_groups)))
         while len(out[name]) < target and cursor < len(group_ids):
-            out[name].extend(by_group[group_ids[cursor]])
+            out[name].extend(by_group[group_ids[cursor]][:per_group])
             cursor += 1
         out[name] = out[name][:target]
     return out
@@ -379,8 +379,12 @@ def prepare(
             train_clean,
             {"test": cfg.test_size, "validation": cfg.validation_size, "train": cfg.train_size},
             cfg.seed,
+            cfg.min_groups_per_split,
         )
-        split_method = "single pool; whole title/near-duplicate-context groups assigned to test, validation, train"
+        split_method = (
+            "single pool; whole title/near-duplicate-context groups assigned to test, validation, train; at most "
+            f"ceil(size/{cfg.min_groups_per_split}) records used per group, the remainder of a group is discarded"
+        )
     else:
         test_clean, test_audit = clean_pool(test_pool, cfg, "test_pool")
         audits["test_pool"] = test_audit
@@ -390,13 +394,13 @@ def prepare(
         train_contexts = {r["context"].lower() for r in train_clean}
         eligible = [r for r in test_clean if r["title"].lower() not in train_titles and r["context"].lower() not in train_contexts]
         excluded_from_test = len(test_clean) - len(eligible)
-        splits = grouped_take(eligible, {"test": cfg.test_size}, cfg.seed)
-        splits.update(grouped_take(train_clean, {"validation": cfg.validation_size, "train": cfg.train_size}, cfg.seed))
+        splits = grouped_take(eligible, {"test": cfg.test_size}, cfg.seed, cfg.min_groups_per_split)
+        splits.update(grouped_take(train_clean, {"validation": cfg.validation_size, "train": cfg.train_size}, cfg.seed, cfg.min_groups_per_split))
         audits["test_pool"]["stats"]["excluded_overlapping_train_pool"] = excluded_from_test
         split_method = (
             "test drawn from the separate test pool (SQuAD official validation split) after removing any record "
             "sharing a title or context with the train pool; validation/train drawn from the train pool by whole "
-            "title/near-duplicate-context groups"
+            f"title/near-duplicate-context groups; at most ceil(size/{cfg.min_groups_per_split}) records used per group"
         )
     contamination = contamination_report(splits)
     if not contamination["passed"]:
@@ -448,6 +452,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--out", required=True)
     parser.add_argument("--profile", choices=sorted(PROFILES), default="full")
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--min-groups-per-split", type=int, default=8, help="spread each split over at least this many title groups")
     for key in ("train_size", "validation_size", "test_size", "calibration_size"):
         parser.add_argument(f"--{key.replace('_', '-')}", type=int)
     args = parser.parse_args(argv)
@@ -456,7 +461,7 @@ def main(argv: list[str] | None = None) -> int:
     for key in list(sizes):
         if getattr(args, key) is not None:
             sizes[key] = getattr(args, key)
-    cfg = PrepConfig(seed=args.seed, **sizes)
+    cfg = PrepConfig(seed=args.seed, min_groups_per_split=args.min_groups_per_split, **sizes)
 
     if args.source == "hf":
         train_pool, test_pool = load_hf_squad()

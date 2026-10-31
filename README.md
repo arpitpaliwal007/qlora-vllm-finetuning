@@ -9,18 +9,16 @@ approved **W4A16** checkpoint locally with **vLLM**.
 
 | Stage | Executed? | Where / evidence |
 |---|---|---|
-| Data pipeline (validate, normalize, dedup, grouped split, manifest) | ✅ on a synthetic fixture (CPU) | `tests/test_prepare_data.py` |
-| Chat templating + assistant-only loss masking + truncation policy | ✅ on a tiny tokenizer (CPU) | `tests/test_dataset.py` |
-| `train.py` → resume → `merge_adapter.py` → `evaluate` → `compare` | ✅ end-to-end on a **tiny random model** (CPU, no NF4) | `tests/test_train_pipeline_cpu.py` |
-| Metrics (EM/F1 best-over-references, paired bootstrap) | ✅ unit tested | `tests/test_metrics.py` |
-| Release gate + promotion/rollback | ✅ on **synthetic** reports (CPU) | `tests/test_release_gate.py` |
-| SQuAD download, real QLoRA run, NF4 loading on GPU | ❌ **not run** (no GPU, no Hub access in the dev sandbox) | run `scripts/run_gpu_pipeline.sh smoke` |
-| llm-compressor W4A16 quantization, vLLM serving, endpoint eval/bench | ❌ **not run** | same script |
-| Promotion of a real artifact / on-prem deployment | ❌ **not run** | same script |
+| Data pipeline (validate, normalize, dedup, grouped split, manifest) | ✅ synthetic fixture (CPU tests) and real SQuAD (Colab T4 smoke run) | `tests/test_prepare_data.py`, smoke manifest |
+| Chat templating + assistant-only loss masking + truncation policy | ✅ tiny tokenizer (CPU) and Qwen2.5 (smoke run: 0 of 320 examples dropped) | `tests/test_dataset.py`, `training_metadata.json` |
+| QLoRA training with NF4 on a GPU | ✅ **smoke profile only** (20 optimizer steps, 256 examples, Colab T4) | smoke log, see [Measured results](#measured-results) |
+| `train.py` → resume → `merge_adapter.py` → `evaluate` → `compare` | ✅ CPU tiny-model test; ✅ GPU smoke run (resume not exercised on GPU) | `tests/test_train_pipeline_cpu.py`, smoke log |
+| llm-compressor W4A16 quantization → vLLM serving → endpoint eval + bench | ✅ smoke run (vLLM 0.32.0 loaded the llm-compressor 0.15.0 checkpoint) | smoke log |
+| Release gate + promotion/rollback | ✅ synthetic reports (CPU tests); ✅ gate ran on the smoke run and returned **FAIL** (see below) | `tests/test_release_gate.py`, `release_decision.json` |
+| Full-profile training (20k × 2 epochs), calibrated policy, promotion of a real artifact | ❌ **not run yet** | `scripts/run_gpu_pipeline.sh full` / `notebooks/colab_pipeline.ipynb` |
 
-**There are no measured model results in this repository.** Every number in the tests is a labelled
-synthetic fixture. The GPU steps are implemented and documented but still need to be executed on a
-machine with an NVIDIA GPU (see [GPU setup](#gpu-setup-and-execution)).
+The smoke run is a pipeline validation, not a model result: 20 steps on 256 examples, scored on 64
+held-out questions. Numbers from it are reported below with that caveat. The full run is the next step.
 
 ## Task and architecture
 
@@ -84,7 +82,7 @@ Changes:
 | Release gate | none | `qlora_vllm.release_gate` + `configs/release_policy.yaml`, `qlora_vllm.promote` with rollback |
 | Quantization | GGUF helper only | `scripts/quantize_w4a16.py` (llm-compressor → compressed-tensors, served by vLLM); GGUF helper kept as an unverified alternative for llama.cpp/Ollama |
 | Serving | documented `vllm serve` | `scripts/serve_vllm.sh` (artifact-id model name, health wait, load-time record), `scripts/smoke_test_api.py` |
-| Tests/CI | 1 test | 35 CPU tests, `ci.yml`; manual self-hosted `gpu-pipeline.yml` |
+| Tests/CI | 1 test | 36 CPU tests, `ci.yml`; manual self-hosted `gpu-pipeline.yml` |
 
 Why `Trainer` instead of TRL: TRL's `assistant_only_loss` requires `{% generation %}` markers in the chat
 template, which Qwen2.5's template does not have, and TRL truncates over-long sequences from the right,
@@ -99,7 +97,7 @@ CPU (tests, data tooling, gate):
 python -m venv .venv && source .venv/bin/activate
 pip install --index-url https://download.pytorch.org/whl/cpu torch==2.13.0
 pip install -r requirements-cpu.txt && pip install -e .
-pytest -q            # 35 tests, ~40 s on 2 CPU cores
+pytest -q            # 36 tests, ~40-90 s on 2 CPU cores
 ruff check src scripts tests
 ```
 
@@ -149,7 +147,9 @@ Methodology (all recorded in `data/squad_qa/manifest.json`):
   the same context (token Jaccard ≥ 0.9) are rejected; near-duplicate contexts (MinHash/LSH, 3-gram
   Jaccard ≥ 0.8) are *not* dropped but merged into one split group.
 * **Splits** – units are **whole groups** (Wikipedia article title ∪ near-duplicate-context clusters),
-  shuffled with the seed, so no context or article appears in two splits. The **test** split comes from
+  shuffled with the seed, so no context or article appears in two splits. At most `ceil(size / 8)`
+  records of a group are used (`--min-groups-per-split`), so a split spans several articles; the unused
+  remainder of a group is discarded, never handed to another split. The **test** split comes from
   SQuAD's official validation split (multiple reference answers per question) after removing any record
   sharing a title or context with the train pool; **validation** and **train** come from the SQuAD train
   split. `calibration.jsonl` is a seeded sample of **train** only. The manifest records a contamination
@@ -279,7 +279,7 @@ evaluation at any time; only `promote` touches the approved slot.
 
 ## Tests and CI
 
-`pytest -q` runs 35 CPU tests: data validation and rejection accounting, Unicode-safe normalization,
+`pytest -q` runs 36 CPU tests: data validation and rejection accounting, Unicode-safe normalization,
 exact/near dedup, grouped-split determinism and leakage checks, official-dev-as-test handling, loss
 masking and truncation policy on a tiny ChatML tokenizer, metrics and bootstrap, artifact hashing and
 tamper detection, precision selection (CPU/T4/A100), and a real `train.py → --resume → merge → evaluate
@@ -302,24 +302,58 @@ identity = `manifest.json → dataset_hash` (sha256 over the split files); model
 evaluation identity = `eval_config_hash`. CUDA kernels (bitsandbytes, vLLM) are not bit-deterministic
 across hardware, so reruns reproduce the *procedure* and should match within bootstrap CIs, not to the bit.
 
+## Measured results
+
+### Smoke run — Colab, Tesla T4 (15 GB), 2026-10-31
+
+Pipeline validation only (`--profile smoke`: 256 train / 64 validation / 64 test / 32 calibration,
+`max_steps: 20`, effective batch 4). Environment: torch 2.13.0 (cu129 wheels), transformers 5.19.0,
+peft 0.21.2, bitsandbytes 0.50.2, llmcompressor 0.15.0, vllm 0.32.0; dataset hash `53f7cd97…`.
+Note: this run trained and merged in **BF16** because of a detection bug (`torch.cuda.is_bf16_supported()`
+reports emulated BF16 on Turing); it is fixed in `hardware.py` (compute capability ≥ 8.0 required), so
+later runs use FP16 on a T4 as intended.
+
+| variant | backend | EM | F1 | empty | errors | artifact |
+|---|---|---|---|---|---|---|
+| base Qwen2.5-1.5B-Instruct | HF | 0.6875 | 0.7529 | 0 | 0 | `884234f9…` |
+| fine-tuned (merged) | HF | 0.8125 | 0.8641 | 0 | 0 | `b5d6ecf3…` |
+| quantized W4A16 | vLLM | 0.7344 | 0.8523 | 0 | 0 | `ff473c1c…` |
+
+Paired bootstrap (n = 64, 10,000 resamples, 95% CI): fine-tuned − base EM **+0.125** [+0.047, +0.219],
+F1 **+0.111** [+0.047, +0.187]; quantized − fine-tuned EM −0.078 [−0.188, +0.016], F1 −0.012
+[−0.067, +0.047].
+
+Training: 174 s for 20 steps (train loss 0.35, eval loss 0.26). Quantization: 79 s. vLLM start to
+`/health`: 168 s. Endpoint benchmark (32 requests, concurrency 4, 8 warm-up, max 48 tokens):
+p50/p95/p99 latency 0.073/0.227/0.348 s, TTFT p50/p95 0.044/0.060 s, 41.2 req/s, 272.7 output tok/s.
+
+Release gate with the shipped example policy: **FAIL** on one check — `exact_match_quantization_degradation`
+(observed 0.078 > 0.03); all 20 other checks passed, including artifact identity, lineage, freshness,
+comparability and every benchmark limit. On 64 examples a 0.078 EM gap is five questions and its CI
+spans zero, so this is the example threshold meeting a tiny sample, not evidence of real degradation.
+The thresholds will be calibrated on the full run (n = 1000); promotion was correctly blocked.
+
+### Full run
+
+Not yet executed.
+
 ## Known limitations and open steps
 
-* **No GPU run has happened yet.** The author's environment had no GPU and no huggingface.co access,
-  so real training, quantization, serving, benchmark numbers and a real release decision are all pending
-  `scripts/run_gpu_pipeline.sh smoke` followed by `full`.
+* **The full-profile run has not happened yet.** Only the 20-step smoke run exists; its metrics are
+  pipeline validation, not a model result. Run `scripts/run_gpu_pipeline.sh full` (or the Colab
+  notebook), then calibrate `configs/release_policy.yaml` from the full-run `comparison.md`.
+* The smoke run trained in emulated BF16 on the T4 because of the detection bug described above; the
+  fix (compute-capability check) is in the code but has not itself been re-run on a GPU yet.
+* `--resume` is covered by the CPU test but has not been exercised on a GPU.
 * The CPU suite was run on the exact train-environment pins (`torch 2.13.0`, `transformers 5.19.0`,
-  `peft 0.21.2`, `datasets 5.1.0`, `accelerate 1.15.0`) and also on `transformers 5.22.1`; the
-  CUDA-only pieces (`bitsandbytes` NF4 loading, `llmcompressor`, `vllm`) import-checked at most and
-  are exercised only by the GPU script.
-* The compressed-tensors checkpoint is written by compressed-tensors 0.20.1 and read by vLLM's 0.17.0;
-  the format is designed to be backward-readable but this specific pair is unverified. If `vllm serve`
-  rejects the checkpoint, quantize in a separate env with `llmcompressor==0.12.0` (compressed-tensors
-  0.17.1, needs `transformers<=5.10.1`, `torch<=2.12`) or upgrade vLLM.
+  `peft 0.21.2`, `datasets 5.1.0`, `accelerate 1.15.0`) and also on `transformers 5.22.1`.
 * vLLM on a T4 cannot use FlashAttention-2 (Ampere+); it falls back to another attention backend. The
   `--dtype float16`, `--max-model-len 2048`, `--gpu-memory-utilization 0.85` defaults in
-  `serve_vllm.sh` are starting points.
+  `serve_vllm.sh` worked on Colab but are starting points.
 * The quantized candidate is scored through vLLM while base/fine-tuned are scored through
   `transformers.generate`; see the engine-confound note above for the apples-to-apples variant.
+* Splits use at most `ceil(size / 8)` records per title group so a split spans several articles; the
+  smoke run predates this change and drew its 64 test questions from a single article.
 * Near-duplicate detection is MinHash on word 3-grams; semantically paraphrased questions on different
   contexts are not detected (and are not leakage in this task, since contexts differ).
 * `quantize_gguf.py` and LoRA-adapter serving in vLLM are not part of the gated path and are unverified.

@@ -114,6 +114,8 @@ def prepared_dataset(tmp_path_factory) -> Path:
             "6",
             "--calibration-size",
             "4",
+            "--min-groups-per-split",
+            "2",
         ]
     )
     return out

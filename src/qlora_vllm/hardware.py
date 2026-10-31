@@ -38,7 +38,9 @@ def detect_hardware() -> dict[str, Any]:
                     "name": props.name,
                     "compute_capability": f"{props.major}.{props.minor}",
                     "total_memory_gb": round(props.total_memory / 1024**3, 2),
-                    "bf16_supported": bool(torch.cuda.is_bf16_supported()),
+                    # torch.cuda.is_bf16_supported() counts *emulated* BF16 and returns True on a T4;
+                    # native BF16 needs compute capability 8.0+ (Ampere), which is what training wants.
+                    "bf16_supported": props.major >= 8,
                 }
             )
     return info
