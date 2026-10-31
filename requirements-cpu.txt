@@ -1,0 +1,12 @@
+# CPU environment for tests/CI (no GPU, no bitsandbytes, no vLLM). Tested with Python 3.13.
+# Install torch first from the CPU index to avoid pulling CUDA runtime wheels:
+#   pip install --index-url https://download.pytorch.org/whl/cpu torch==2.13.0
+torch==2.13.0
+transformers==5.19.0
+peft==0.21.2
+datasets==5.1.0
+accelerate==1.15.0
+numpy>=1.26
+pyyaml>=6.0
+pytest>=8.0
+ruff>=0.7

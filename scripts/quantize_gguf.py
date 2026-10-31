@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Convert a merged Hugging Face model to GGUF and quantize it with llama.cpp."""
+
 from __future__ import annotations
 
 import argparse

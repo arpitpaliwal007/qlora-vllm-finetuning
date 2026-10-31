@@ -1,0 +1,6 @@
+# Separate serving environment. vllm 0.32.0 pins torch==2.13.0, transformers<5.20 and
+# compressed-tensors==0.17.0, which conflicts with llmcompressor 0.15.0 (compressed-tensors==0.20.1),
+# so serving and quantization cannot share one virtualenv.
+vllm==0.32.0
+numpy>=1.26
+pyyaml>=6.0

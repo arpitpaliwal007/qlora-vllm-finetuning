@@ -1,0 +1,521 @@
+{
+ "_note": "SYNTHETIC TEST FIXTURE for CPU tests only. Not SQuAD, not real data; contains deliberately malformed and duplicate records.",
+ "version": "test-fixture-1",
+ "data": [
+  {
+   "title": "Test Article Rivers",
+   "paragraphs": [
+    {
+     "context": "The Blue River flows for 120 kilometres through the Harlow valley before reaching Port Lennox. It was first mapped in 1842 by the surveyor Edith Marlow, who recorded its width at 40 metres near the town of Kell.",
+     "qas": [
+      {
+       "id": "test-001",
+       "question": "How long is the Blue River?",
+       "answers": [
+        {
+         "text": "120 kilometres",
+         "answer_start": 25
+        }
+       ]
+      },
+      {
+       "id": "test-002",
+       "question": "Who first mapped the Blue River?",
+       "answers": [
+        {
+         "text": "Edith Marlow",
+         "answer_start": 139
+        }
+       ]
+      },
+      {
+       "id": "test-003",
+       "question": "In what year was the Blue River first mapped?",
+       "answers": [
+        {
+         "text": "1842",
+         "answer_start": 118
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "context": "The Harlow valley is known for its orchards. Apple harvests begin each September and the largest farm, Greywood Orchard, employs about 300 seasonal workers.",
+     "qas": [
+      {
+       "id": "test-004",
+       "question": "When do apple harvests begin in the Harlow valley?",
+       "answers": [
+        {
+         "text": "September",
+         "answer_start": 71
+        }
+       ]
+      },
+      {
+       "id": "test-005",
+       "question": "How many seasonal workers does Greywood Orchard employ?",
+       "answers": [
+        {
+         "text": "about 300",
+         "answer_start": 129
+        }
+       ]
+      },
+      {
+       "id": "test-006",
+       "question": "What is the largest farm in the Harlow valley?",
+       "answers": [
+        {
+         "text": "Greywood Orchard",
+         "answer_start": 103
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Test Article Bridges",
+   "paragraphs": [
+    {
+     "context": "The Kell Bridge was opened in 1901 and spans 310 metres. Its designer, Tomas Reinholt, used a cantilever design inspired by the Forth Bridge.",
+     "qas": [
+      {
+       "id": "test-007",
+       "question": "When was the Kell Bridge opened?",
+       "answers": [
+        {
+         "text": "1901",
+         "answer_start": 30
+        }
+       ]
+      },
+      {
+       "id": "test-008",
+       "question": "Who designed the Kell Bridge?",
+       "answers": [
+        {
+         "text": "Tomas Reinholt",
+         "answer_start": 71
+        }
+       ]
+      },
+      {
+       "id": "test-009",
+       "question": "What design did Tomas Reinholt use?",
+       "answers": [
+        {
+         "text": "cantilever",
+         "answer_start": 94
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "context": "Maintenance of the Kell Bridge costs the city roughly 2 million dollars a year, most of it spent on repainting the steel to prevent corrosion.",
+     "qas": [
+      {
+       "id": "test-010",
+       "question": "How much does maintenance of the Kell Bridge cost each year?",
+       "answers": [
+        {
+         "text": "roughly 2 million dollars",
+         "answer_start": 46
+        }
+       ]
+      },
+      {
+       "id": "test-011",
+       "question": "What is most of the maintenance money spent on?",
+       "answers": [
+        {
+         "text": "repainting the steel",
+         "answer_start": 100
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Test Article Observatory",
+   "paragraphs": [
+    {
+     "context": "The Marlow Observatory sits at an altitude of 2,400 metres. Its main telescope has a 3.2 metre mirror and began operating in 1978.",
+     "qas": [
+      {
+       "id": "test-012",
+       "question": "What is the altitude of the Marlow Observatory?",
+       "answers": [
+        {
+         "text": "2,400 metres",
+         "answer_start": 46
+        }
+       ]
+      },
+      {
+       "id": "test-013",
+       "question": "How large is the main telescope's mirror?",
+       "answers": [
+        {
+         "text": "3.2 metre",
+         "answer_start": 85
+        }
+       ]
+      },
+      {
+       "id": "test-014",
+       "question": "When did the main telescope begin operating?",
+       "answers": [
+        {
+         "text": "1978",
+         "answer_start": 125
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "context": "Visitors to the observatory can attend public viewing nights every Friday, which are hosted by volunteer astronomer Priya Natarajan.",
+     "qas": [
+      {
+       "id": "test-015",
+       "question": "On which day are public viewing nights held?",
+       "answers": [
+        {
+         "text": "Friday",
+         "answer_start": 67
+        }
+       ]
+      },
+      {
+       "id": "test-016",
+       "question": "Who hosts the public viewing nights?",
+       "answers": [
+        {
+         "text": "Priya Natarajan",
+         "answer_start": 116
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Test Article Library",
+   "paragraphs": [
+    {
+     "context": "The Port Lennox Library holds 450,000 volumes and was founded in 1888 by the merchant Josiah Penrose, who donated his private collection.",
+     "qas": [
+      {
+       "id": "test-017",
+       "question": "How many volumes does the Port Lennox Library hold?",
+       "answers": [
+        {
+         "text": "450,000",
+         "answer_start": 30
+        }
+       ]
+      },
+      {
+       "id": "test-018",
+       "question": "Who founded the Port Lennox Library?",
+       "answers": [
+        {
+         "text": "Josiah Penrose",
+         "answer_start": 86
+        }
+       ]
+      },
+      {
+       "id": "test-019",
+       "question": "When was the Port Lennox Library founded?",
+       "answers": [
+        {
+         "text": "1888",
+         "answer_start": 65
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "context": "The library's reading room was restored in 2015 at a cost of 4 million dollars, funded largely by a grant from the Harlow Foundation.",
+     "qas": [
+      {
+       "id": "test-020",
+       "question": "When was the reading room restored?",
+       "answers": [
+        {
+         "text": "2015",
+         "answer_start": 43
+        }
+       ]
+      },
+      {
+       "id": "test-021",
+       "question": "Who funded most of the restoration?",
+       "answers": [
+        {
+         "text": "the Harlow Foundation",
+         "answer_start": 111
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Test Article Railway",
+   "paragraphs": [
+    {
+     "context": "The Harlow Railway opened in 1864 and connected Kell with Port Lennox. Steam locomotives were replaced by diesel units in 1962.",
+     "qas": [
+      {
+       "id": "test-022",
+       "question": "When did the Harlow Railway open?",
+       "answers": [
+        {
+         "text": "1864",
+         "answer_start": 29
+        }
+       ]
+      },
+      {
+       "id": "test-023",
+       "question": "When were steam locomotives replaced?",
+       "answers": [
+        {
+         "text": "1962",
+         "answer_start": 122
+        }
+       ]
+      },
+      {
+       "id": "test-024",
+       "question": "Which two towns did the railway connect?",
+       "answers": [
+        {
+         "text": "Kell with Port Lennox",
+         "answer_start": 48
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "context": "Today the line carries about 9,000 passengers a day, and a new station at Greywood is planned to open in 2027.",
+     "qas": [
+      {
+       "id": "test-025",
+       "question": "How many passengers does the line carry each day?",
+       "answers": [
+        {
+         "text": "about 9,000",
+         "answer_start": 23
+        }
+       ]
+      },
+      {
+       "id": "test-026",
+       "question": "Where is the new station planned?",
+       "answers": [
+        {
+         "text": "Greywood",
+         "answer_start": 74
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Test Article Festival",
+   "paragraphs": [
+    {
+     "context": "The Kell Lantern Festival takes place on the first Saturday of October. It began in 1923 as a harvest celebration and now attracts 50,000 visitors.",
+     "qas": [
+      {
+       "id": "test-027",
+       "question": "When does the Kell Lantern Festival take place?",
+       "answers": [
+        {
+         "text": "the first Saturday of October",
+         "answer_start": 41
+        }
+       ]
+      },
+      {
+       "id": "test-028",
+       "question": "When did the festival begin?",
+       "answers": [
+        {
+         "text": "1923",
+         "answer_start": 84
+        }
+       ]
+      },
+      {
+       "id": "test-029",
+       "question": "How many visitors does the festival attract?",
+       "answers": [
+        {
+         "text": "50,000",
+         "answer_start": 131
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "context": "Lanterns are made from rice paper and bamboo by local schools, and the largest lantern in 2019 measured 12 metres across.",
+     "qas": [
+      {
+       "id": "test-030",
+       "question": "What are the lanterns made from?",
+       "answers": [
+        {
+         "text": "rice paper and bamboo",
+         "answer_start": 23
+        }
+       ]
+      },
+      {
+       "id": "test-031",
+       "question": "How wide was the largest lantern in 2019?",
+       "answers": [
+        {
+         "text": "12 metres",
+         "answer_start": 104
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Test Article Rivers",
+   "paragraphs": [
+    {
+     "context": "The Blue River flows for 120 kilometres through the Harlow valley before reaching Port Lennox. It was first mapped in 1842 by the surveyor Edith Marlow, who recorded its width at 40 metres near the town of Kell.",
+     "qas": [
+      {
+       "id": "dup-exact",
+       "question": "How long is the Blue River?",
+       "answers": [
+        {
+         "text": "120 kilometres",
+         "answer_start": 25
+        }
+       ]
+      },
+      {
+       "id": "dup-near",
+       "question": "How long is the Blue River ?",
+       "answers": [
+        {
+         "text": "120 kilometres",
+         "answer_start": 25
+        }
+       ]
+      },
+      {
+       "id": "bad-span",
+       "question": "Who surveyed it?",
+       "answers": [
+        {
+         "text": "Edith Marlow",
+         "answer_start": 0
+        }
+       ]
+      },
+      {
+       "id": "bad-empty-q",
+       "question": "   ",
+       "answers": [
+        {
+         "text": "1842",
+         "answer_start": 118
+        }
+       ]
+      },
+      {
+       "id": "bad-no-answers",
+       "question": "What is the width?",
+       "answers": []
+      },
+      {
+       "id": "bad-empty-answer",
+       "question": "What is the width near Kell?",
+       "answers": [
+        {
+         "text": "",
+         "answer_start": 0
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Test Article Rivers Copy",
+   "paragraphs": [
+    {
+     "context": "The Blue River flows for 120 kilometres through the Harlow valley before reaching Port Lennox. It was first mapped in 1842 by the surveyor Edith Marlow, who recorded its width at 41 metres near the town of Kell.",
+     "qas": [
+      {
+       "id": "near-ctx-1",
+       "question": "What width was recorded near Kell?",
+       "answers": [
+        {
+         "text": "41 metres",
+         "answer_start": 179
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": "Test Article Unicode",
+   "paragraphs": [
+    {
+     "context": "The Café René opened in 1957 and serves crème brûlée every evening.",
+     "qas": [
+      {
+       "id": "uni-1",
+       "question": "When did the Café René open?",
+       "answers": [
+        {
+         "text": "1957",
+         "answer_start": 24
+        }
+       ]
+      },
+      {
+       "id": "uni-2",
+       "question": "What dessert does it serve?",
+       "answers": [
+        {
+         "text": "crème brûlée",
+         "answer_start": 40
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,11 +1,14 @@
-# Replace this with a model you have access to and are licensed to use.
+# Full-run profile for a single NVIDIA T4 (~15 GB VRAM), QLoRA on Qwen2.5-1.5B-Instruct.
+# Data: python -m qlora_vllm.prepare_data --source hf --out data/squad_qa --profile full
 model_name: Qwen/Qwen2.5-1.5B-Instruct
-dataset_path: data/train.jsonl
+model_revision: 989aa7980e4cf806f80c7fef2b1adb7bc71aa306   # pinned Hub commit (apache-2.0)
+dataset_path: data/squad_qa/train.jsonl
+validation_path: data/squad_qa/validation.jsonl
 output_dir: artifacts/qlora-adapter
 
-# Split 5% of data for evaluation; use 0 to disable evaluation.
-validation_split: 0.05
-max_seq_length: 2048
+# SQuAD prompts are < 600 tokens; over-long examples are dropped and counted, never truncated.
+max_seq_length: 1024
+on_too_long: drop
 
 # QLoRA / bitsandbytes
 load_in_4bit: true
@@ -16,19 +19,21 @@ lora_alpha: 64
 lora_dropout: 0.05
 lora_target_modules: [q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj]
 
-# Training
+# Training (effective batch 16; ~2500 optimizer steps for 20k examples x 2 epochs)
 num_train_epochs: 2
-per_device_train_batch_size: 1
-per_device_eval_batch_size: 1
-gradient_accumulation_steps: 16
+max_steps: -1
+per_device_train_batch_size: 4
+per_device_eval_batch_size: 4
+gradient_accumulation_steps: 4
 learning_rate: 0.0002
+lr_scheduler_type: cosine
 warmup_ratio: 0.03
-logging_steps: 10
-save_steps: 100
+weight_decay: 0.0
+logging_steps: 20
+save_steps: 250
 save_total_limit: 2
-eval_steps: 100
+eval_steps: 250
 seed: 42
-bf16: true
-fp16: false
+precision: auto          # auto -> fp16 on T4 (no BF16), bf16 on Ampere+
 gradient_checkpointing: true
-resume_from_checkpoint: null
+resume_from_checkpoint: null   # null | auto | path/to/checkpoint-N

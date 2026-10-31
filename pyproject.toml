@@ -4,28 +4,37 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "qlora-vllm-finetuning"
-version = "0.1.0"
-description = "QLoRA fine-tuning and vLLM serving starter"
+version = "0.2.0"
+description = "QLoRA fine-tuning, evaluation, release gating and quantized vLLM serving for grounded QA"
 readme = "README.md"
-requires-python = ">=3.10"
-dependencies = ["pyyaml>=6.0"]
+requires-python = ">=3.11,<3.14"
+dependencies = ["pyyaml>=6.0", "numpy>=1.26"]
 
 [project.optional-dependencies]
+# Exact, tested pins live in requirements-*.txt; these ranges only guard against known-incompatible majors.
 train = [
-  "accelerate>=1.0",
-  "bitsandbytes>=0.43",
-  "datasets>=3.0",
-  "peft>=0.13",
-  "torch>=2.4",
-  "transformers>=4.46",
-  "trl>=0.12",
+  "torch>=2.13,<2.16",
+  "transformers>=5.16,<5.23",
+  "peft>=0.21,<0.22",
+  "bitsandbytes>=0.50,<0.51",
+  "accelerate>=1.15,<2",
+  "datasets>=5.1,<6",
 ]
-serve = ["vllm>=0.6"]
+quantize = ["llmcompressor>=0.15,<0.16"]
+serve = ["vllm>=0.32,<0.33"]
 dev = ["pytest>=8.0", "ruff>=0.7"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.ruff]
-line-length = 100
-target-version = "py310"
+line-length = 160
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E731"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"

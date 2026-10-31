@@ -1,0 +1,30 @@
+# Example release policy. These thresholds are ILLUSTRATIVE STARTING POINTS, not
+# validated quality standards: calibrate them against your own measured base and
+# fine-tuned results before relying on them. Quality metrics are means over the
+# held-out test split (exact match / token F1, best over reference answers).
+policy_name: example-policy-v1
+
+quality:
+  min_f1: 0.70                                  # absolute floor for the candidate
+  min_exact_match: 0.55
+  max_f1_regression_vs_baseline: 0.02           # candidate vs currently approved artifact
+  max_exact_match_regression_vs_baseline: 0.03
+  max_f1_quantization_degradation: 0.02         # quantized candidate vs unquantized fine-tuned model
+  max_exact_match_quantization_degradation: 0.03
+
+reliability:
+  max_empty_rate: 0.02                          # empty responses / examples
+  max_error_rate: 0.01                          # inference errors / examples
+
+performance:
+  required: true                                # false: skip the benchmark checks entirely
+  min_requests: 32                              # benchmark must have measured at least this many requests
+  max_p95_latency_seconds: 3.0
+  max_p95_ttft_seconds: 1.0
+  min_output_tokens_per_second: 40
+  max_error_rate: 0.01
+
+evidence:
+  max_report_age_hours: 72                      # reports older than this are stale
+  allow_missing_baseline: true                  # only sensible for the very first release
+  require_identity_verified: true               # endpoint reports must prove which artifact they measured

@@ -1,0 +1,31 @@
+# Manual GPU workflow. Requires a self-hosted runner with one NVIDIA GPU (T4 16 GB or better),
+# an NVIDIA driver compatible with the CUDA runtime of the pinned torch/vLLM wheels, ~40 GB of
+# free disk, and outbound access to huggingface.co and PyPI. It is never triggered automatically.
+name: GPU pipeline (manual, self-hosted)
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: "smoke or full"
+        required: true
+        default: smoke
+
+jobs:
+  pipeline:
+    runs-on: [self-hosted, gpu]
+    timeout-minutes: 720
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run the pipeline
+        run: scripts/run_gpu_pipeline.sh ${{ github.event.inputs.profile }}
+      - name: Upload reports and release decision
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports-${{ github.event.inputs.profile }}
+          path: |
+            reports/
+            data/*/manifest.json
+            artifacts/*/training_metadata.json
+            artifacts/*/artifact_manifest.json

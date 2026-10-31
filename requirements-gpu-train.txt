@@ -1,0 +1,12 @@
+# GPU environment for data prep, QLoRA training, merging, HF evaluation and W4A16 quantization.
+# torch 2.13.0 is the version vLLM 0.32.0 pins, so both environments share one CUDA runtime requirement.
+# Python 3.11-3.13. NOT yet executed on a GPU by the author of this pin set - see README "Status".
+torch==2.13.0
+transformers==5.19.0
+peft==0.21.2
+bitsandbytes==0.50.2
+accelerate==1.15.0
+datasets==5.1.0
+llmcompressor==0.15.0   # pins compressed-tensors==0.20.1
+numpy>=1.26
+pyyaml>=6.0
